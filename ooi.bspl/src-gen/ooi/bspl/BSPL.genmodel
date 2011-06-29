@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/ooi.bspl/src-gen"
+    editDirectory="/ooi.bspl.edit/src" editorDirectory="/ooi.bspl.editor/src" modelPluginID="ooi.bspl"
+    forceOverwrite="true" modelName="BSPL" updateClasspath="false" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    complianceLevel="5.0" copyrightFields="false" editPluginID="ooi.bspl.edit" editorPluginID="ooi.bspl.editor">
+  <genPackages prefix="BSPL" basePackage="ooi.bspl" disposableProviderFactory="true"
+      ecorePackage="BSPL.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BSPL.ecore#//kAdornment">
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kAdornment/in"/>
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kAdornment/out"/>
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kAdornment/io"/>
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kAdornment/nil"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BSPL.ecore#//kPROTOCOL">
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kPROTOCOL/protocol"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BSPL.ecore#//kROLE">
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kROLE/role"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BSPL.ecore#//kPARAMETER">
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kPARAMETER/parameter"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BSPL.ecore#//kPRIVATE">
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kPRIVATE/private"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="BSPL.ecore#//kKEY">
+      <genEnumLiterals ecoreEnumLiteral="BSPL.ecore#//kKEY/key"/>
+    </genEnums>
+    <genClasses ecoreClass="BSPL.ecore#//BSPL">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//BSPL/junkProtocol"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//BSPL/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//BSPL/junkRole"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//BSPL/roles"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//BSPL/junkPub"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//BSPL/publicParams"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//BSPL/junkPriv"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//BSPL/privateParams"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//BSPL/references"/>
+    </genClasses>
+    <genClasses ecoreClass="BSPL.ecore#//Role">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//Role/name"/>
+    </genClasses>
+    <genClasses ecoreClass="BSPL.ecore#//ParamDecl">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//ParamDecl/adornment"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//ParamDecl/param"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//ParamDecl/isKey"/>
+    </genClasses>
+    <genClasses ecoreClass="BSPL.ecore#//Parameter">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//Parameter/name"/>
+    </genClasses>
+    <genClasses ecoreClass="BSPL.ecore#//ParamRef">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//ParamRef/adornment"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BSPL.ecore#//ParamRef/param"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//ParamRef/isKey"/>
+    </genClasses>
+    <genClasses ecoreClass="BSPL.ecore#//Message">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BSPL.ecore#//Message/sender"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BSPL.ecore#//Message/receiver"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute BSPL.ecore#//Message/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//Message/params"/>
+    </genClasses>
+    <genClasses ecoreClass="BSPL.ecore#//Reference">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BSPL.ecore#//Reference/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference BSPL.ecore#//Reference/roles"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference BSPL.ecore#//Reference/params"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

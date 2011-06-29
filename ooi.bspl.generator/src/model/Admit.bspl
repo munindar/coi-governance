@@ -1,0 +1,9 @@
+protocol Admit {
+	role User, Self
+	parameter in ionUserID key, in ionOrgID key, out assignedRole key, out confirm
+
+	User -> Self:  join [in ionUserID, in ionOrgID]
+
+	Self  -> User: accept [in ionUserID, in ionOrgID, out assignedRole, out confirm]
+	Self  -> User: reject [in ionUserID, in ionOrgID, out confirm]
+}
