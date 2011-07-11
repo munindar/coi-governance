@@ -1,0 +1,7 @@
+protocol ANFQueue {
+  role ANF, EPU
+  parameter out binding key, out confirm
+
+  ANF -> EPU: launch [out binding]
+  EPU -> ANF: done [in binding, out confirm]	
+}

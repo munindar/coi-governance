@@ -1,0 +1,56 @@
+grammar ooi.coi.bspl.BSPL with org.eclipse.xtext.common.Terminals
+
+generate bSPL "http://www.coi.ooi.org/bspl/BSPL" //Edited
+
+Protocol returns BSPL: 
+	(junkProtocol ?= kPROTOCOL)? (name = ID) LBRACE 
+		(junkRole ?= kROLE) (roles += Role) COMMA (roles += Role) (COMMA roles += Role)* 
+		(junkPub ?= kPARAMETER) (publicParams += ParamDecl) (COMMA publicParams += ParamDecl)*
+		((junkPriv ?= kPRIVATE) (privateParams += Parameter) (COMMA privateParams += Parameter)*)?
+		(references += (Reference | Message))+
+	RBRACE;
+	
+Role:
+	name = ID;
+
+ParamDecl:
+	(adornment = kAdornment) (param = Parameter) (isKey ?= kKEY)?;
+
+Parameter:
+	name = ID;
+	
+ParamRef:
+	(adornment = kAdornment) (param = [Parameter]) (isKey ?= kKEY)?;
+
+Message:
+	(sender = [Role]) ARROW (receiver = [Role]) COLON  
+	(name = ID) 
+	LBRACKET 
+		(params += ParamRef) (COMMA params += ParamRef)* 
+	RBRACKET;
+
+Reference:
+	(ref = [BSPL]) LPAREN
+	(roles += [Role] COMMA)+ 
+	(params += ParamRef) (COMMA params += ParamRef)* 
+	RPAREN;
+
+// The terminals whose names begin with k are keywords of BSPL.
+// We need to use enum instead of terminal for keywords.
+
+enum kAdornment: in | out | io| nil;
+enum kPROTOCOL: protocol;
+enum kROLE: role;
+enum kPARAMETER: parameter;
+enum kPRIVATE: private;
+enum kKEY: key;
+
+terminal ARROW: '->' | '&rarr;';
+terminal COMMA: ',';
+terminal COLON: ':';
+terminal LBRACE: '{';
+terminal RBRACE: '}';
+terminal LBRACKET: '[';
+terminal RBRACKET: ']';
+terminal LPAREN: '(';
+terminal RPAREN: ')';
