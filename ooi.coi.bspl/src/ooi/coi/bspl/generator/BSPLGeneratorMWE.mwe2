@@ -28,7 +28,7 @@ Workflow {
   }
 
   component = BSPLReader {
-        uri = "protocols/ANFQueue.bspl"
+        uri = "protocols/Purchase.bspl"
   }
 
   component = BSPLtoMessageLogSchema {}

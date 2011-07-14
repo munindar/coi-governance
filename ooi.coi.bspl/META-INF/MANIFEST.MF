@@ -21,13 +21,14 @@ Import-Package: org.apache.log4j,
  org.apache.commons.logging,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.xtext.xtend2.lib
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: ooi.coi.bspl,
- ooi.coi.bspl.services,
  ooi.coi.bspl.bSPL,
  ooi.coi.bspl.bSPL.impl,
  ooi.coi.bspl.bSPL.util,
+ ooi.coi.bspl.lost,
  ooi.coi.bspl.parseTreeConstruction,
  ooi.coi.bspl.parser.antlr,
  ooi.coi.bspl.parser.antlr.internal,
+ ooi.coi.bspl.services,
  ooi.coi.bspl.validation

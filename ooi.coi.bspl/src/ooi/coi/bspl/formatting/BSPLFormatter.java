@@ -16,39 +16,40 @@ import org.eclipse.xtext.util.Pair;
  * This class contains custom formatting description.
  * 
  * see : http://www.eclipse.org/Xtext/documentation/latest/xtext.html#formatting
- * on how and when to use it 
+ * on how and when to use it
  * 
- * Also see {@link org.eclipse.xtext.xtext.XtextFormattingTokenSerializer} as an example
+ * Also see {@link org.eclipse.xtext.xtext.XtextFormattingTokenSerializer} as an
+ * example
  */
 public class BSPLFormatter extends AbstractDeclarativeFormatter {
-	
-	@Override
-	protected void configureFormatting(FormattingConfig c) {
 
-		BSPLGrammarAccess f = (BSPLGrammarAccess) getGrammarAccess();
+  @Override
+  protected void configureFormatting(FormattingConfig c) {
 
-		c.setAutoLinewrap(60);
-		
-		c.setLinewrap(1, 2, 3).around(f.getKAdornmentRule());
-		//c.setLinewrap(1, 2, 3).around(f.getPackageDeclarationRule());
-		c.setLinewrap(1, 1, 2).around(f.getIDRule());
-		//c.setNoSpace().before(f.getParamRefAccess());
-		
-		List<Pair<Keyword,Keyword>> braces = f.findKeywordPairs("{", "}");
-		for (Pair<Keyword, Keyword> brace : braces) {
-			c.setIndentation(brace.getFirst(), brace.getSecond());
-		}
-		
-		List<Pair<Keyword,Keyword>> brackets = f.findKeywordPairs("[", "]");
-		for (Pair<Keyword, Keyword> bracket : brackets) {
-			c.setIndentation(bracket.getFirst(), bracket.getSecond());
-		}
+    BSPLGrammarAccess f = (BSPLGrammarAccess) this.getGrammarAccess();
 
-		// It's usually a good idea to activate the following three statements.
-		// They will add and preserve newlines around comments
-				c.setLinewrap(0, 1, 2).before(f.getSL_COMMENTRule());
-				c.setLinewrap(0, 1, 2).before(f.getML_COMMENTRule());
-				c.setLinewrap(0, 1, 1).after(f.getML_COMMENTRule());
+    c.setAutoLinewrap(60);
 
-	}
+    c.setLinewrap(1, 2, 3).around(f.getKAdornmentRule());
+    // c.setLinewrap(1, 2, 3).around(f.getPackageDeclarationRule());
+    c.setLinewrap(1, 1, 2).around(f.getIDRule());
+    // c.setNoSpace().before(f.getParamRefAccess());
+
+    List<Pair<Keyword, Keyword>> braces = f.findKeywordPairs("{", "}");
+    for (Pair<Keyword, Keyword> brace : braces) {
+      c.setIndentation(brace.getFirst(), brace.getSecond());
+    }
+
+    List<Pair<Keyword, Keyword>> brackets = f.findKeywordPairs("[", "]");
+    for (Pair<Keyword, Keyword> bracket : brackets) {
+      c.setIndentation(bracket.getFirst(), bracket.getSecond());
+    }
+
+    // It's usually a good idea to activate the following three statements.
+    // They will add and preserve newlines around comments
+    c.setLinewrap(0, 1, 2).before(f.getSL_COMMENTRule());
+    c.setLinewrap(0, 1, 2).before(f.getML_COMMENTRule());
+    c.setLinewrap(0, 1, 1).after(f.getML_COMMENTRule());
+
+  }
 }

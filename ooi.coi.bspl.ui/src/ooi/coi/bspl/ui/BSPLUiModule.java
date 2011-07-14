@@ -14,20 +14,21 @@ import org.eclipse.xtext.ui.editor.hyperlinking.IHyperlinkHelper;
  * Use this class to register components to be used within the IDE.
  */
 public class BSPLUiModule extends ooi.coi.bspl.ui.AbstractBSPLUiModule {
-	public BSPLUiModule(AbstractUIPlugin plugin) {
-		super(plugin);
-	}
-	
-	public Class<? extends ILinkingDiagnosticMessageProvider> bindILinkingDiagnosticMessageProvider() {
-		return BSPLLinkingDiagnosticMessageProvider.class;
-	}
-	
-	public Class<? extends IHyperlinkHelper> bindIHyperlinkHelper() {
-		return BSPLHyperlinkHelper.class;
-	}
-	
-//	public Class<? extends IAutoEditStrategy> bindIAutoEditStrategy() {
-//		return BSPLFantasticAutoEditStrategy.class;
-//	}
+  public BSPLUiModule(AbstractUIPlugin plugin) {
+    super(plugin);
+  }
+
+  public Class<? extends ILinkingDiagnosticMessageProvider> bindILinkingDiagnosticMessageProvider() {
+    return BSPLLinkingDiagnosticMessageProvider.class;
+  }
+
+  @Override
+  public Class<? extends IHyperlinkHelper> bindIHyperlinkHelper() {
+    return BSPLHyperlinkHelper.class;
+  }
+
+  // public Class<? extends IAutoEditStrategy> bindIAutoEditStrategy() {
+  // return BSPLFantasticAutoEditStrategy.class;
+  // }
 
 }

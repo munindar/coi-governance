@@ -1,13 +1,12 @@
 package ooi.coi.bspl;
 
 /**
- * Initialization support for running Xtext languages 
- * without equinox extension registry
+ * Initialization support for running Xtext languages without equinox extension
+ * registry
  */
-public class BSPLStandaloneSetup extends BSPLStandaloneSetupGenerated{
+public class BSPLStandaloneSetup extends BSPLStandaloneSetupGenerated {
 
-	public static void doSetup() {
-		new BSPLStandaloneSetup().createInjectorAndDoEMFRegistration();
-	}
+  public static void doSetup() {
+    new BSPLStandaloneSetup().createInjectorAndDoEMFRegistration();
+  }
 }
-

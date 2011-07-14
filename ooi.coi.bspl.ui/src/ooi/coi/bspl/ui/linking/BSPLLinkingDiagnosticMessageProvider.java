@@ -11,36 +11,39 @@ import org.eclipse.xtext.diagnostics.Severity;
 import org.eclipse.xtext.linking.impl.LinkingDiagnosticMessageProvider;
 
 public class BSPLLinkingDiagnosticMessageProvider extends
-		LinkingDiagnosticMessageProvider {
+    LinkingDiagnosticMessageProvider {
 
-	public static final String MISSING_ROLE = "ooi.bspl.MISSING_ROLE";
-	public static final String MISSING_PARAMETER = "ooi.bspl.MISSING_PARAMETER";
+  public static final String MISSING_ROLE = "ooi.coi.bspl.MISSING_ROLE";
+  public static final String MISSING_PARAMETER = "ooi.coi.bspl.MISSING_PARAMETER";
 
-	@Override
-	public DiagnosticMessage getUnresolvedProxyMessage(final ILinkingDiagnosticContext context) {
-		DiagnosticMessage diagnosticMessage = new BSPLSwitch<DiagnosticMessage>() {
-			@Override
-			public DiagnosticMessage caseMessage(Message aMessage) {
-				return new DiagnosticMessage("Missing role " + context.getLinkText(), Severity.ERROR,
-						MISSING_ROLE, context.getLinkText());
-			}
+  @Override
+  public DiagnosticMessage getUnresolvedProxyMessage(
+      final ILinkingDiagnosticContext context) {
+    DiagnosticMessage diagnosticMessage = new BSPLSwitch<DiagnosticMessage>() {
+      @Override
+      public DiagnosticMessage caseMessage(Message aMessage) {
+        return new DiagnosticMessage("Missing role " + context.getLinkText(),
+            Severity.ERROR, BSPLLinkingDiagnosticMessageProvider.MISSING_ROLE,
+            context.getLinkText());
+      }
 
-			@Override
-			public DiagnosticMessage caseRole(Role aRole) {
-				return doSwitch(aRole.eContainer());
-			}
+      @Override
+      public DiagnosticMessage caseRole(Role aRole) {
+        return this.doSwitch(aRole.eContainer());
+      }
 
-			@Override
-			public DiagnosticMessage caseParameter(Parameter aParameter) {
-				if (context.getReference() == BSPLPackage.Literals.MESSAGE__PARAMS) {
-					return new DiagnosticMessage("Missing attribute type " + context.getLinkText(),
-							Severity.ERROR, MISSING_PARAMETER, context.getLinkText());
-				}
-				return null;
-			}
+      @Override
+      public DiagnosticMessage caseParameter(Parameter aParameter) {
+        if (context.getReference() == BSPLPackage.Literals.MESSAGE__PARAMS) return new DiagnosticMessage(
+            "Missing attribute type " + context.getLinkText(), Severity.ERROR,
+            BSPLLinkingDiagnosticMessageProvider.MISSING_PARAMETER,
+            context.getLinkText());
+        return null;
+      }
 
-		}.doSwitch(context.getContext());
-		return diagnosticMessage != null ? diagnosticMessage : super.getUnresolvedProxyMessage(context);
-	}
+    }.doSwitch(context.getContext());
+    return diagnosticMessage != null ? diagnosticMessage : super
+        .getUnresolvedProxyMessage(context);
+  }
 
 }
