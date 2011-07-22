@@ -26,9 +26,7 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 
 public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
   private static final String PRIMARY_PREF = "PK_";
-
   private static final Integer DEFAULT_TYPE_LENGTH = 32;
-
   private static final String DEFAULT_TYPE = "varchar";
 
   private Map<String, RoleMessageLogSchema> roleSchemas = new HashMap<String, RoleMessageLogSchema>();

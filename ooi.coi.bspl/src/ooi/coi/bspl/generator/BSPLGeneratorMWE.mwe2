@@ -33,6 +33,12 @@ Workflow {
 
   component = BSPLtoMessageLogSchema {}
 
+  component = InsertIntegrityQueries {
+		slot = 'model'
+          uriPrefix = targetDir
+          uriSuffix = "_Queries.java"
+  }
+  
   component = SQLWriter {
 //		register = BSPLStandaloneSetup {}
 		slot = 'model'

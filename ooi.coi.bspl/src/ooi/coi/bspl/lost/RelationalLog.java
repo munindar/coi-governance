@@ -30,7 +30,7 @@ public class RelationalLog {
     dbName = qName;
     try {
       Class.forName(RelationalLog.DRIVER).newInstance();
-      conn = DriverManager.getConnection(RelationalLog.DBMS + dbName, RelationalLog.USERNAME, RelationalLog.PASSWORD);
+      conn = DriverManager.getConnection(RelationalLog.DBMS, RelationalLog.USERNAME, RelationalLog.PASSWORD);
       System.out.println("Connected to the MySQL installation");
 
       Statement initializeDB = conn.createStatement();

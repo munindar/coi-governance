@@ -1,6 +1,5 @@
 package ooi.coi.bspl.lost;
 
-import java.io.IOException;
 import java.util.List;
 
 import com.rabbitmq.client.Channel;

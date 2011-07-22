@@ -7,9 +7,23 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
+// From the tutorial
+import static extension org.eclipse.xtext.xtend2.lib.ResourceExtensions.*
+import org.eclipse.xtext.naming.IQualifiedNameProvider
+import com.google.inject.Inject
+
+import ooi.coi.bspl.bSPL.*
+
 class BSPLGenerator implements IGenerator {
-	
+
+// From the tutorial but breaks
+	@Inject extension IQualifiedNameProvider nameProvider
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		//TODO implment me
+//		for(m : resource.allContentsIterable.filter(typeof(Message))) {
+//			fsa.generateFile(m.fullyQualifiedName.toString.replace(".", "/") + ".java",
+//				m.compile)
+//        }
 	}
+	
+//	def compile(Message m) 
 }

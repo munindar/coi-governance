@@ -7,7 +7,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.mwe2.runtime.workflow.IWorkflowContext;
 
 public class BSPLReader extends WorkflowComponentWithSlot {
-  // Lifted from Xtext documentation
+  // Lifted from the Xtext documentation
   private String uri;
 
   @Override
