@@ -2,6 +2,9 @@ grammar ooi.coi.bspl.BSPL with org.eclipse.xtext.common.Terminals
 
 generate bSPL "http://www.coi.ooi.org/bspl/BSPL" //Edited
 
+// Introduced the terms named "junk*" below so as to support terminals to show up as enum,
+// for which the Xtext 1.0 default behavior is to highlight properly in a .bspl document.
+// These are called because the value they take on is not used for anything
 Protocol returns BSPL: 
 	(junkProtocol ?= kPROTOCOL)? (name = ID) LBRACE 
 		(junkRole ?= kROLE) (roles += Role) COMMA (roles += Role) (COMMA roles += Role)* 
@@ -18,7 +21,7 @@ ParamDecl:
 
 Parameter:
 	name = ID;
-	
+
 ParamRef:
 	(adornment = kAdornment) (param = [Parameter]) (isKey ?= kKEY)?;
 

@@ -1,5 +1,7 @@
 package ooi.coi.bspl.schema;
 
+import ooi.coi.bspl.util.WorkflowComponentWithSlot;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;

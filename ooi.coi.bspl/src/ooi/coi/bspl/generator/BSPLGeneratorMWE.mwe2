@@ -4,6 +4,7 @@ import org.eclipse.emf.mwe.utils.*
 
 import ooi.coi.bspl.BSPLStandaloneSetup
 import ooi.coi.bspl.schema.*
+import ooi.coi.bspl.semantic.*
 
 var targetDir = "logSchemas/"
 var modelPath = "protocols"
@@ -31,21 +32,24 @@ Workflow {
         uri = "protocols/Purchase.bspl"
   }
 
-  component = BSPLtoMessageLogSchema {}
+  component = Checker {}
 
-  component = InsertIntegrityQueries {
-		slot = 'model'
-          uriPrefix = targetDir
-          uriSuffix = "_Queries.java"
-  }
-  
-  component = SQLWriter {
-//		register = BSPLStandaloneSetup {}
-		slot = 'model'
-          uriPrefix = targetDir
-          uriSuffix = ".sql"
- //			path = targetDir
-  }
+// COMMENTED OUT TEMPORARILY
+//  component = BSPLtoMessageLogSchema {}
+//
+//  component = InsertIntegrityQueries {
+//		slot = 'model'
+//          uriPrefix = targetDir
+//          uriSuffix = "_Queries.java"
+//  }
+//  
+//  component = SQLWriter {
+////		register = BSPLStandaloneSetup {}
+//		slot = 'model'
+//          uriPrefix = targetDir
+//          uriSuffix = ".sql"
+// //			path = targetDir
+//  }
 
 }
 

@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ooi.coi.bspl.util.Pair;
+import ooi.coi.bspl.util.WorkflowComponentWithSlot;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.URI;

@@ -1,4 +1,4 @@
-package ooi.coi.bspl.schema;
+package ooi.coi.bspl.util;
 
 public class Pair<One, Two> {
     private One first;

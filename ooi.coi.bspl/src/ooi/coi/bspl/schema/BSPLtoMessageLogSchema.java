@@ -11,6 +11,7 @@ import ooi.coi.bspl.bSPL.ParamDecl;
 import ooi.coi.bspl.bSPL.ParamRef;
 import ooi.coi.bspl.bSPL.Parameter;
 import ooi.coi.bspl.bSPL.Role;
+import ooi.coi.bspl.util.WorkflowComponentWithSlot;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -43,7 +44,7 @@ public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
     ctx.put(this.getSlot(), roleSchemas);
   }
 
-  // Only works for one protocol
+  // Only works for one protocol at a time
   private void generateLogSchemas(BSPL theProtocol) {
     DbSpec dbSpec = new DbSpec();
 

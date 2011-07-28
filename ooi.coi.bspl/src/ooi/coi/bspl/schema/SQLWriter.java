@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
 
+import ooi.coi.bspl.util.WorkflowComponentWithSlot;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.mwe2.runtime.workflow.IWorkflowContext;

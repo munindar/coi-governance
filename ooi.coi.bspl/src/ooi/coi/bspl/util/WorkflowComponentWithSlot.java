@@ -1,4 +1,4 @@
-package ooi.coi.bspl.schema;
+package ooi.coi.bspl.util;
 
 import org.eclipse.emf.mwe2.runtime.workflow.IWorkflowComponent;
 import org.eclipse.emf.mwe2.runtime.workflow.IWorkflowContext;
