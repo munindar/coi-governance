@@ -29,7 +29,7 @@ Workflow {
   }
 
   component = BSPLReader {
-        uri = "protocols/Purchase.bspl"
+        uri = "protocols/ReciprocatingParameters.bspl" //OneMessage ANFQueue PurchaseNoReject Purchase
   }
 
   component = Checker {}

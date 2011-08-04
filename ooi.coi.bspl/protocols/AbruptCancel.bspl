@@ -1,0 +1,7 @@
+protocol AbruptCancel {
+  role Speaker, Hearer
+  parameter out ID key, out outcome
+
+  Speaker -> Hearer: goods [out ID key, out outcome]
+  Hearer -> Speaker: cancel [out ID key, out outcome]	
+}

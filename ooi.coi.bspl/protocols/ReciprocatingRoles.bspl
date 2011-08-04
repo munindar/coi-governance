@@ -1,0 +1,7 @@
+protocol ReciprocatingRoles {
+  role Speaker, Hearer
+  parameter out p key, out q
+
+  Speaker -> Hearer: inPoutQ [in p key, out q]
+  Hearer -> Speaker: outPinQ [out p key, in q]	
+}

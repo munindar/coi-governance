@@ -1,0 +1,6 @@
+protocol OneMessage {
+  role Sendr, Recvr
+  parameter out binding key
+
+  Sendr -> Recvr: launch [out binding]
+}

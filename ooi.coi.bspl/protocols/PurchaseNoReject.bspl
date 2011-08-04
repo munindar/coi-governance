@@ -1,0 +1,12 @@
+protocol Purchase {
+ role Buyer, Seller, Shipper
+ parameter out ID key, out item, out price, out outcome
+ private address, response
+
+ Buyer -> Seller: rfq [out ID, out item]
+ Seller -> Buyer: quote [in ID, in item, out price]
+ Buyer -> Seller: accept [in ID, in item, in price, out address, out response]
+
+ Seller -> Shipper: ship [in ID, in item, in address]
+ Shipper -> Buyer: deliver [in ID, in item, in address, out outcome]
+}

@@ -1,0 +1,7 @@
+protocol LocalConflict {
+  role Speaker, Hearer
+  parameter out ID key, out answer
+
+  Speaker -> Hearer: one [out ID key, out answer]
+  Speaker -> Hearer: two [out ID key, out answer]	
+}

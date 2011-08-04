@@ -4,13 +4,13 @@ import ooi.coi.bspl.bSPL.BSPL;
 import ooi.coi.bspl.bSPL.BSPLPackage;
 import ooi.coi.bspl.bSPL.Message;
 import ooi.coi.bspl.bSPL.ParamDecl;
-import ooi.coi.bspl.bSPL.ParamRef;
 import ooi.coi.bspl.bSPL.Parameter;
 import ooi.coi.bspl.bSPL.Role;
 import ooi.coi.bspl.bSPL.kAdornment;
+import ooi.coi.bspl.util.ProtocolUtils;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.validation.Check;
@@ -70,7 +70,7 @@ public class BSPLJavaValidator extends AbstractBSPLJavaValidator {
       BSPL theProtocol = (BSPL) pDecl.eContainer();
       EList<EObject> allRefs = theProtocol.getReferences();
       for (EObject aRef : allRefs) {
-        if (this.usesParam(aRef, pDecl.getParam(), kAdornment.OUT)) return;
+        if (ProtocolUtils.usesParam(aRef, pDecl.getParam(), kAdornment.OUT)) return;
       }
       this.error("["+pDecl.getParam().getName()+"] "+ BSPLJavaValidator.MSG_OUT_REFERENCE,
           BSPLPackage.Literals.PARAM_DECL__PARAM, BSPLJavaValidator.INVALID_PARAMDECL_OUT, pDecl.getParam().getName());
@@ -84,8 +84,8 @@ public class BSPLJavaValidator extends AbstractBSPLJavaValidator {
       BSPL theProtocol = (BSPL) pDecl.eContainer();
       EList<EObject> allRefs = theProtocol.getReferences();
       for (EObject aRef : allRefs) {
-        if (this.usesParam(aRef, pDecl.getParam(), kAdornment.OUT)
-            || this.usesParam(aRef, pDecl.getParam(), kAdornment.NIL)) {
+        if (ProtocolUtils.usesParam(aRef, pDecl.getParam(), kAdornment.OUT)
+            || ProtocolUtils.usesParam(aRef, pDecl.getParam(), kAdornment.NIL)) {
           this.error("["+pDecl.getParam().getName()+"] "+ BSPLJavaValidator.MSG_IN_REFERENCE, BSPLPackage.Literals.PARAM_DECL__PARAM,
               BSPLJavaValidator.INVALID_PARAMDECL_OUT, pDecl.getParam().getName());
         }
@@ -94,52 +94,32 @@ public class BSPLJavaValidator extends AbstractBSPLJavaValidator {
     }
   }
 
-  // Will later extend this to deal with other References besides Messages
-  private boolean usesParam(EObject aRef, Parameter param, kAdornment adornment) {
-    Message aMsg = (Message) aRef;
-    EList<ParamRef> paramRefs = aMsg.getParams();
-    for (ParamRef paramRef : paramRefs) {
-      if ((paramRef.getParam() == param) && (paramRef.getAdornment() == adornment)) return true;
-    }
-    return false;
-  }
-
-  private EList<Parameter> keyListOfParaminRef(EObject aRef) {
-    Message aMsg = (Message) aRef;
-    EList<Parameter> keyRefs = new BasicEList<Parameter>();
-
-    EList<ParamRef> paramRefs = aMsg.getParams();
-    for (int i = 0; i<paramRefs.size(); i++) {
-      ParamRef paramRef = paramRefs.get(i); 
-      if (paramRef.isIsKey()) keyRefs.add(paramRef.getParam());
-    }
-    return keyRefs;
-  }
-  
-/* To handle the key constraints on parameter */
+ 
+/* To handle the key constraints on a parameter. I should change this method to apply on a parameter
+ * reference, not a parameter declaration. Doing so should correct what is highlighted.  */
   @Check(CheckType.FAST)
   public void checkParamKeys(ParamDecl pDecl) {
     BSPL theProtocol = (BSPL) pDecl.eContainer();
     EList<EObject> allRefs = theProtocol.getReferences();
     EList<ParamDecl> allParams = theProtocol.getPublicParams();
-    BSPLJavaValidator.logger.debug("allRefs= " + stringify(allRefs) + " allParams= " + allParams);
+    BSPLJavaValidator.logger.debug("allRefs= " + ProtocolUtils.stringify(allRefs) + " allParams= " + allParams);
     
     if ((pDecl.getAdornment() == kAdornment.OUT) && (!pDecl.isIsKey())) {
       Parameter param = pDecl.getParam();
       for (EObject outRef : allRefs) {
-        BSPLJavaValidator.logger.debug("param= " + param + "; outRef= " + stringify((Message)outRef));
-        if (this.usesParam(outRef, param, kAdornment.OUT)) {
-          EList<Parameter> outRefKeyList = keyListOfParaminRef(outRef);
+        BSPLJavaValidator.logger.debug("param= " + param + "; outRef= " + ProtocolUtils.stringify((Message)outRef));
+        if (ProtocolUtils.usesParam(outRef, param, kAdornment.OUT)) {
+          EList<Parameter> outRefKeyList = ProtocolUtils.keyListOfParaminRef(outRef);
           
           for (EObject aRef : allRefs) {
             if (aRef != outRef) {
-              if (this.usesParam(aRef, param, kAdornment.OUT)) {
-                BSPLJavaValidator.logger.info("Found OUT. " + "aRef= " + stringify((Message)aRef) + "; outRef= " + stringify((Message)outRef));
+              if (ProtocolUtils.usesParam(aRef, param, kAdornment.OUT)) {
+                BSPLJavaValidator.logger.info("Found OUT. " + "aRef= " + ProtocolUtils.stringify((Message)aRef) + "; outRef= " + ProtocolUtils.stringify((Message)outRef));
                 this.info("["+param.getName()+"] "+ BSPLJavaValidator.MSG_OUT_OUT_CONFLICT, BSPLPackage.Literals.PARAM_DECL__PARAM,
                     BSPLJavaValidator.OUT_OUT_RISK, param.getName());
               }
-              else if (this.usesParam(aRef, param, kAdornment.IN)) {
-                EList<Parameter> aRefKeyList = keyListOfParaminRef(aRef);
+              else if (ProtocolUtils.usesParam(aRef, param, kAdornment.IN)) {
+                EList<Parameter> aRefKeyList = ProtocolUtils.keyListOfParaminRef(aRef);
                 if (!aRefKeyList.containsAll(outRefKeyList)) {
                   BSPLJavaValidator.logger.info("Found aRefKeyList.size()=" + aRefKeyList.size() + "; outRefKeyList.size()= " + outRefKeyList.size());
                   BSPLJavaValidator.logger.info("Found aRefKeyList.get(0)=" + aRefKeyList.get(0) + "; outRefKeyList.get(0)= " + outRefKeyList.get(0));
@@ -152,22 +132,6 @@ public class BSPLJavaValidator extends AbstractBSPLJavaValidator {
         }
       }
     }
-  }
-
-  private String stringify(EList<EObject> l) {
-    StringBuffer sb = new StringBuffer();
-    sb.append("[[");
-    sb.append(l.get(0));
-    for (int i=1; i<l.size(); i++)
-      sb.append(", ").append(stringify(l.get(i)));
-    sb.append("]]");
-    return sb.toString();
-  }
-
-  private String stringify(EObject m) {
-    if (m instanceof Message)
-      return ((Message)m).getName();
-    return m.toString();
   }
 
 
