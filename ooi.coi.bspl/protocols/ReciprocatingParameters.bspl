@@ -1,3 +1,8 @@
+// This protocol is not enactable because the protocol requires that 
+// the Speaker's two outgoing messages have a cyclic dependence on each
+// other with respect to their parameters, whose bindings one message
+// generates and the other message inputs.
+
 protocol ReciprocatingParameters {
   role Speaker, Hearer
   parameter out p key, out q

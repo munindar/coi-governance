@@ -1,3 +1,6 @@
+// The Speaker can either send message one or message two, so it is 
+// a local conflict.
+
 protocol LocalConflict {
   role Speaker, Hearer
   parameter out ID key, out answer

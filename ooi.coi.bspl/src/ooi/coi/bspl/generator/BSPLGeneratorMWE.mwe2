@@ -29,7 +29,17 @@ Workflow {
   }
 
   component = BSPLReader {
-        uri = "protocols/ReciprocatingParameters.bspl" //OneMessage ANFQueue PurchaseNoReject Purchase
+//  	    uri = "protocols/AbruptCancel.bspl"
+//        uri = "protocols/OneMessage.bspl"
+        uri = "protocols/ANFQueue.bspl"
+//        uri = "protocols/PurchaseNoReject.bspl"
+//        uri = "protocols/Purchase.bspl"
+//        uri = "protocols/ReciprocatingRoles.bspl"
+//        uri = "protocols/ReciprocatingParameters.bspl"
+//        uri = "protocols/LocalConflict.bspl"
+//        uri = "protocols/AbruptCancel.bspl"
+//        uri = "protocols/.bspl"
+//        uri = "protocols/.bspl"
   }
 
   component = Checker {}

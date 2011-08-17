@@ -7,19 +7,16 @@ public abstract class WorkflowComponentWithSlot implements IWorkflowComponent {
 
   @Override
   public void invoke(IWorkflowContext arg0) {
-    // TODO Auto-generated method stub
 
   }
 
   @Override
   public void postInvoke() {
-    // TODO Auto-generated method stub
 
   }
 
   @Override
   public void preInvoke() {
-    // TODO Auto-generated method stub
 
   }
 

@@ -1,3 +1,6 @@
+// This protocol demonstrates a nonlocal conflict (specifically, an unguarded one).
+// Thus, it does not ensure integrity.
+
 protocol AbruptCancel {
   role Speaker, Hearer
   parameter out ID key, out outcome

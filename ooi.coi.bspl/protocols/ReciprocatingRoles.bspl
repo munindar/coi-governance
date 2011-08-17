@@ -1,3 +1,6 @@
+// This protocol is not enactable because the protocol requires that 
+// each role waits for the other
+
 protocol ReciprocatingRoles {
   role Speaker, Hearer
   parameter out p key, out q

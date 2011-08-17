@@ -1,3 +1,5 @@
+// A simplification of Purchase that eliminates the reject message.
+
 protocol Purchase {
  role Buyer, Seller, Shipper
  parameter out ID key, out item, out price, out outcome
