@@ -1,16 +1,16 @@
-package ooi.coi.bspl.schema;
+package ooi.coi.bspl.schema.sql;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 
-public class RoleMessageLogSchema {
+public class RoleMessageLogSchemaSQL {
 
   private String roleName;
   private List<DbTable> roleTables;
 
-  public RoleMessageLogSchema(String name) {
+  public RoleMessageLogSchemaSQL(String name) {
     roleName = name;
     roleTables = new ArrayList<DbTable>();
   }

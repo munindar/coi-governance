@@ -1,4 +1,4 @@
-package ooi.coi.bspl.schema;
+package ooi.coi.bspl.schema.sql;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ooi.coi.bspl.schema.LexicalConstants;
 import ooi.coi.bspl.util.Pair;
 import ooi.coi.bspl.util.WorkflowComponentWithSlot;
 
@@ -26,32 +27,29 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 
-public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
+public class InsertIntegrityQueriesSQL extends WorkflowComponentWithSlot {
 
-  private static Logger logger = Logger.getLogger(InsertIntegrityQueries.class);
+  private static Logger logger = Logger.getLogger(InsertIntegrityQueriesSQL.class);
   static {
     logger.setLevel(Level.INFO);
   }
   
-  public static final String INTEGRITY_QUERY_RESULT = "Inconsistent-Message";
-  private static final String SEMICOLON = ";";
   private String uriPrefix;
   private String uriSuffix;
-
 
   @Override
   public void invoke(IWorkflowContext ctx) {
     @SuppressWarnings("unchecked")
-    Map<String, RoleMessageLogSchema> roleSchemas = (Map<String, RoleMessageLogSchema>) ctx.get(this.getSlot());
+    Map<String, RoleMessageLogSchemaSQL> roleSchemas = (Map<String, RoleMessageLogSchemaSQL>) ctx.get(this.getSlot());
 
     for (String roleName : roleSchemas.keySet()) {
-      RoleMessageLogSchema roleSchemaEntry = roleSchemas.get(roleName);
+      RoleMessageLogSchemaSQL roleSchemaEntry = roleSchemas.get(roleName);
       List<UnionQuery> roleMessageQueries = constructQueries(roleName, roleSchemaEntry);
       outputQueries(roleName, roleMessageQueries);
     }
   }
   
-  private List<UnionQuery> constructQueries(String roleName, RoleMessageLogSchema roleSchemaEntry) {
+  private List<UnionQuery> constructQueries(String roleName, RoleMessageLogSchemaSQL roleSchemaEntry) {
     List<UnionQuery> theMessageQueries = new ArrayList<UnionQuery>();
     
     for (DbTable currentTable : roleSchemaEntry.getRoleTables()) {
@@ -66,7 +64,7 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
           List<DbColumn> otherColumns = otherTable.getColumns();
 
           for (DbColumn currentCol : currentColumns) {
-            InsertIntegrityQueries.logger.debug("currentCol.getColumnNameSQL()= " + currentCol.getColumnNameSQL());
+            InsertIntegrityQueriesSQL.logger.debug("currentCol.getColumnNameSQL()= " + currentCol.getColumnNameSQL());
             for (DbColumn otherCol : otherColumns) {
               if (currentCol.getColumnNameSQL().equals(otherCol.getColumnNameSQL())) {
                 Pair<DbColumn, DbColumn> currentOther = new Pair<DbColumn, DbColumn>(currentCol, otherCol); 
@@ -77,13 +75,13 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
               }
             }
           }
-          InsertIntegrityQueries.logger.debug("commonKeys= " + display(commonKeys));
-          InsertIntegrityQueries.logger.debug("commonColumns= " + display(commonColumns));
+          InsertIntegrityQueriesSQL.logger.debug("commonKeys= " + display(commonKeys));
+          InsertIntegrityQueriesSQL.logger.debug("commonColumns= " + display(commonColumns));
           SelectQuery sQuery = formulatePreparedQuery(currentTable, otherTable, commonKeys, commonColumns);
           aMessageQuery.addQueries(sQuery);
         }
       }
-      InsertIntegrityQueries.logger.debug("union= " + aMessageQuery.validate().toString());
+      InsertIntegrityQueriesSQL.logger.debug("union= " + aMessageQuery.validate().toString());
       theMessageQueries.add(aMessageQuery);
     }
     return theMessageQueries;
@@ -100,11 +98,11 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
 
     private SelectQuery formulatePreparedQuery(DbTable currentTable, DbTable otherTable, 
         List<Pair<DbColumn, DbColumn>> commonKeys, List<Pair<DbColumn, DbColumn>> commonColumns) {
-      InsertIntegrityQueries.logger.debug("formulateQuery on " + currentTable);
+      InsertIntegrityQueriesSQL.logger.debug("formulateQuery on " + currentTable);
 
       QueryPreparer preparer = new QueryPreparer();
       SelectQuery theQuery = new SelectQuery();
-      theQuery.addCustomColumns(InsertIntegrityQueries.INTEGRITY_QUERY_RESULT);
+      theQuery.addCustomColumns(LexicalConstants.INTEGRITY_QUERY_RESULT);
       //theQuery.addFromTable(currentTable);
       theQuery.addFromTable(otherTable);
       
@@ -130,7 +128,7 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
 
     private QueryPreparer.MultiPlaceHolder getPlaceHolder(QueryPreparer preparer, DbColumn aColumn) {
       String columnName = aColumn.getAbsoluteName();
-      InsertIntegrityQueries.logger.debug("columnName= " + columnName);
+      InsertIntegrityQueriesSQL.logger.debug("columnName= " + columnName);
       QueryPreparer.MultiPlaceHolder theMPH = placeHolders.get(columnName);
       
       if (theMPH == null) {
@@ -143,10 +141,10 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
 
     private SelectQuery formulateQuery(DbTable currentTable, DbTable otherTable, 
         List<Pair<DbColumn, DbColumn>> commonKeys, List<Pair<DbColumn, DbColumn>> commonColumns) {
-      InsertIntegrityQueries.logger.debug("formulateQuery on " + currentTable);
+      InsertIntegrityQueriesSQL.logger.debug("formulateQuery on " + currentTable);
 
       SelectQuery theQuery = new SelectQuery(); 
-      theQuery.addCustomColumns(InsertIntegrityQueries.INTEGRITY_QUERY_RESULT);
+      theQuery.addCustomColumns(LexicalConstants.INTEGRITY_QUERY_RESULT);
       theQuery.addFromTable(currentTable);
       theQuery.addFromTable(otherTable);
       
@@ -169,7 +167,7 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
       // Additionally, our method creates exactly a single PRIMARY_KEY constraint
       boolean result = allConstraints.get(0).getColumns().contains(aColumn); 
 
-      InsertIntegrityQueries.logger.debug("aColumn=" + aColumn + " aTable= " + aTable + " isSKey= " + result);
+      InsertIntegrityQueriesSQL.logger.debug("aColumn=" + aColumn + " aTable= " + aTable + " isSKey= " + result);
 
       return result; 
     }
@@ -184,7 +182,7 @@ public class InsertIntegrityQueries extends WorkflowComponentWithSlot {
       
       for (UnionQuery roleMessageQuery: roleMessageQueries) {
         pStream.print(roleMessageQuery.validate().toString());
-        pStream.println(SEMICOLON);
+        pStream.println(LexicalConstants.SEMICOLON);
       }
 
     } catch (IOException e) {

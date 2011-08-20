@@ -4,6 +4,8 @@ import org.eclipse.emf.mwe.utils.*
 
 import ooi.coi.bspl.BSPLStandaloneSetup
 import ooi.coi.bspl.schema.*
+import ooi.coi.bspl.schema.sql.*
+import ooi.coi.bspl.schema.pyke.*
 import ooi.coi.bspl.semantic.*
 
 var targetDir = "logSchemas/"
@@ -29,7 +31,7 @@ Workflow {
   }
 
   component = BSPLReader {
-//  	    uri = "protocols/AbruptCancel.bspl"
+//  	  uri = "protocols/AbruptCancel.bspl"
 //        uri = "protocols/OneMessage.bspl"
         uri = "protocols/ANFQueue.bspl"
 //        uri = "protocols/PurchaseNoReject.bspl"
@@ -42,24 +44,26 @@ Workflow {
 //        uri = "protocols/.bspl"
   }
 
-  component = Checker {}
+//  component = Checker {}
 
 // COMMENTED OUT TEMPORARILY
-//  component = BSPLtoMessageLogSchema {}
-//
-//  component = InsertIntegrityQueries {
+  component = BSPLtoMessageLogSchemaPyKE {}
+
+//  component = BSPLtoMessageLogSchemaSQL {}
+//  component = InsertIntegrityQueriesSQL {
 //		slot = 'model'
 //          uriPrefix = targetDir
 //          uriSuffix = "_Queries.java"
 //  }
-//  
+  
+  component = PyKEWriter {
 //  component = SQLWriter {
-////		register = BSPLStandaloneSetup {}
-//		slot = 'model'
-//          uriPrefix = targetDir
-//          uriSuffix = ".sql"
-// //			path = targetDir
-//  }
+//		register = BSPLStandaloneSetup {}
+		slot = 'model'
+          uriPrefix = targetDir
+          uriSuffix = ".pfb"
+ //			path = targetDir
+  }
 
 }
 

@@ -1,4 +1,4 @@
-package ooi.coi.bspl.schema;
+package ooi.coi.bspl.schema.sql;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,12 +25,12 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 
-public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
+public class BSPLtoMessageLogSchemaSQL extends WorkflowComponentWithSlot {
   private static final String PRIMARY_PREF = "PK_";
   private static final Integer DEFAULT_TYPE_LENGTH = 32;
   private static final String DEFAULT_TYPE = "varchar";
 
-  private Map<String, RoleMessageLogSchema> roleSchemas = new HashMap<String, RoleMessageLogSchema>();
+  private Map<String, RoleMessageLogSchemaSQL> roleSchemas = new HashMap<String, RoleMessageLogSchemaSQL>();
 
   @Override
   public void invoke(IWorkflowContext ctx) {
@@ -75,7 +75,7 @@ public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
       }
     }
 
-    messageTable.primaryKey(BSPLtoMessageLogSchema.PRIMARY_PREF + aMessage.getName(),
+    messageTable.primaryKey(BSPLtoMessageLogSchemaSQL.PRIMARY_PREF + aMessage.getName(),
         keyColumnNames.toArray(new String[keyColumnNames.size()]));
   }
 
@@ -94,7 +94,7 @@ public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
     DbSchema foundSchema = dbSpec.findSchema(roleName);
     if (foundSchema == null) {
       foundSchema = dbSpec.addSchema(roleName);
-      RoleMessageLogSchema roleSchemaEntry = new RoleMessageLogSchema(roleName);
+      RoleMessageLogSchemaSQL roleSchemaEntry = new RoleMessageLogSchemaSQL(roleName);
       roleSchemas.put(roleName, roleSchemaEntry);
     }
     return foundSchema;
@@ -104,7 +104,7 @@ public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
     DbTable foundTable = roleSchema.findTable(messageName);
     if (foundTable == null) {
       foundTable = roleSchema.addTable(messageName);
-      RoleMessageLogSchema roleSchemaEntry = roleSchemas.get(roleName);
+      RoleMessageLogSchemaSQL roleSchemaEntry = roleSchemas.get(roleName);
       roleSchemaEntry.add(foundTable);
     }
     return foundTable;
@@ -113,8 +113,8 @@ public class BSPLtoMessageLogSchema extends WorkflowComponentWithSlot {
   private DbColumn findOrMakeColumn(DbTable messageTable, String columnName) {
     DbColumn foundColumn = messageTable.findColumn(columnName);
     if (foundColumn == null) {
-      foundColumn = messageTable.addColumn(columnName, BSPLtoMessageLogSchema.DEFAULT_TYPE,
-          BSPLtoMessageLogSchema.DEFAULT_TYPE_LENGTH);
+      foundColumn = messageTable.addColumn(columnName, BSPLtoMessageLogSchemaSQL.DEFAULT_TYPE,
+          BSPLtoMessageLogSchemaSQL.DEFAULT_TYPE_LENGTH);
       foundColumn.notNull();
     }
     return foundColumn;

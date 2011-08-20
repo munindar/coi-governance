@@ -1,4 +1,4 @@
-package ooi.coi.bspl.schema;
+package ooi.coi.bspl.schema.sql;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +15,7 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 
 public class SQLWriter extends WorkflowComponentWithSlot {
 
+  private static final String SQL = ".sql";
   private static final String CREATE_DATABASE = "CREATE DATABASE IF NOT EXISTS ";
   private static final String USE_DATABASE = "USE ";
   private static final String SEMICOLON = ";";
@@ -24,7 +25,7 @@ public class SQLWriter extends WorkflowComponentWithSlot {
   @Override
   public void invoke(IWorkflowContext ctx) {
     @SuppressWarnings("unchecked")
-    Map<String, RoleMessageLogSchema> roleSchemas = (Map<String, RoleMessageLogSchema>) ctx.get(this.getSlot());
+    Map<String, RoleMessageLogSchemaSQL> roleSchemas = (Map<String, RoleMessageLogSchemaSQL>) ctx.get(this.getSlot());
 
     for (String roleName : roleSchemas.keySet()) {
       try {
@@ -32,12 +33,14 @@ public class SQLWriter extends WorkflowComponentWithSlot {
         FileOutputStream outFile = new FileOutputStream(uri.toFileString());
         PrintStream pStream = new PrintStream(outFile);
 
-        pStream.println(SQLWriter.CREATE_DATABASE + roleName + SQLWriter.SEMICOLON);
-        pStream.println(SQLWriter.USE_DATABASE + roleName + SQLWriter.SEMICOLON);
+        if (this.getUriSuffix().equalsIgnoreCase(SQL)) {
+        	pStream.println(SQLWriter.CREATE_DATABASE + roleName + SQLWriter.SEMICOLON);
+        	pStream.println(SQLWriter.USE_DATABASE + roleName + SQLWriter.SEMICOLON);
+        }
 
-        RoleMessageLogSchema roleSchemaEntry = roleSchemas.get(roleName);
+        RoleMessageLogSchemaSQL roleSchemaEntry = roleSchemas.get(roleName);
         for (DbTable roleTable : roleSchemaEntry.getRoleTables()) {
-          SafeCreateTableQuery tableSpec = new SafeCreateTableQuery(roleTable, true);
+          SQLCreateTable tableSpec = new SQLCreateTable(roleTable, true);
           String tableAsSQL = tableSpec.validate().toString();
           pStream.print(tableAsSQL);
           pStream.println(SQLWriter.SEMICOLON);
