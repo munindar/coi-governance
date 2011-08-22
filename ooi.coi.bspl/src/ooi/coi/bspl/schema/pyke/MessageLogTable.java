@@ -48,11 +48,15 @@ public class MessageLogTable {
     final StringBuffer sb = new StringBuffer();
     sb.append(prefix);
     sb.append(LexicalConstants.LPAREN);
+    sb.append(LexicalConstants.QUOTE);
     sb.append(table);
+    sb.append(LexicalConstants.QUOTE);
 
     for (final String column : columns) {
       sb.append(LexicalConstants.COMMA);
+      sb.append(LexicalConstants.QUOTE);
       sb.append(column);
+      sb.append(LexicalConstants.QUOTE);
     }
     sb.append(LexicalConstants.RPAREN);
     sb.append(LexicalConstants.SEMICOLON);

@@ -5,6 +5,7 @@ public interface LexicalConstants {
 	 public static final String LOG_TABLE = "LogTable";
 	 public static final String KEY_TABLE = "KeyTable";
 	 public static final String SEMICOLON = ";";
+   public static final String QUOTE = "'";
 	 public static final String NL = "\n";
 
 	 public static final String CREATE_TABLE_IF_NOT = "CREATE TABLE IF NOT EXISTS ";

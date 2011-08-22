@@ -1,4 +1,4 @@
-LogTable(launch,binding);
-KeyTable(launch,binding);
-LogTable(done,binding,confirm);
-KeyTable(done,binding);
+LogTable('done','binding','confirm');
+KeyTable('done','binding');
+LogTable('launch','binding');
+KeyTable('launch','binding');
