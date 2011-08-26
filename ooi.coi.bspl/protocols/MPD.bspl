@@ -1,0 +1,7 @@
+MPD {
+ role Taker, Exchange, Maker
+ parameter out reqID key, out query, out res
+
+ GBPD(Taker, Exchange, out reqID, out query, in res)
+ GBPD(Exchange, Maker, in reqID, in query, out res)
+}

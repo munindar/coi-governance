@@ -5,6 +5,7 @@ protocol Purchase {
 
  Buyer -> Seller: rfq [out ID, out item]
  Seller -> Buyer: quote [in ID, in item, out price]
+ // means Commitment(Seller, Buyer, pay(ID, price), deliver(ID, item))
  Buyer -> Seller: accept [in ID, in item, in price, out address, out response]
  Buyer -> Seller: reject [in ID, in item, in price, out outcome, out response]
 

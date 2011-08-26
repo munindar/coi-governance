@@ -1,0 +1,8 @@
+Mixed-Initiative-Offer {
+ role B, S
+ parameter in ID key, out qID key, out aID key
+     out qItem, out qPrice, out aItem, out aPrice
+
+ S -> B: quote[in ID, out qID, out qItem, out qPrice]
+ B -> S: accept[in ID, out aID, out aItem, out aPrice]
+}

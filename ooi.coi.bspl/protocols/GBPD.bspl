@@ -1,0 +1,10 @@
+GBPD {
+ role T, M
+ parameter reqID key, query, res
+
+ T -> M: priceRequest[out reqID, out query]
+ T -> M: priceRequest[in reqID, in query]
+
+ M -> T: priceResponse[in reqID, in query, out res]
+ M -> T: priceResponse[in reqID, in query, in res]
+}

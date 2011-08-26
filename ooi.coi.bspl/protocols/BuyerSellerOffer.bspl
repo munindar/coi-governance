@@ -1,0 +1,9 @@
+BuyerSellerOffer {
+ role Buyer, Seller
+ parameter in ID key, out item, out price
+
+ Buyer -> Seller: rfq [in ID, out item, nil price]
+ Buyer -> Seller: rfqq [in ID, out item, out price]
+ Seller -> Buyer: quotea [in ID, in item, out price]
+ Seller -> Buyer: quote [in ID, in item, in price]
+}

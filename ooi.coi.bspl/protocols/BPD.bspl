@@ -1,0 +1,7 @@
+BPD {
+ role Taker, Maker
+ parameter out reqID key, out query, out result
+
+ Taker -> Maker: priceRequest[out reqID, out query]
+ Maker -> Taker: priceResponse[in reqID, in query, out result]
+}

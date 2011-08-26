@@ -32,8 +32,9 @@ Workflow {
 
   component = BSPLReader {
 //  	  uri = "protocols/AbruptCancel.bspl"
+  	  uri = "protocols/BuyerSellerOffer.bspl"
 //        uri = "protocols/OneMessage.bspl"
-        uri = "protocols/ANFQueue.bspl"
+//        uri = "protocols/ANFQueue.bspl"
 //        uri = "protocols/PurchaseNoReject.bspl"
 //        uri = "protocols/Purchase.bspl"
 //        uri = "protocols/ReciprocatingRoles.bspl"
@@ -44,7 +45,7 @@ Workflow {
 //        uri = "protocols/.bspl"
   }
 
-//  component = Checker {}
+  component = Checker {}
 
 // COMMENTED OUT TEMPORARILY
   component = BSPLtoMessageLogSchemaPyKE {}
