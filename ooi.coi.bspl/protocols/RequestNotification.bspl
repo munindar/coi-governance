@@ -1,0 +1,14 @@
+protocol RequestNotification {
+ role I, P
+ parameter out ID key, out req key, out res
+ private handle
+
+ I -> P: request[out ID, out req]
+
+ P -> I: refuse[in ID, in req, out handle, out res]
+ P -> I: agree[in ID, in req, out handle]
+
+ P -> I: fail[in ID, in req, in handle, out res]
+ P -> I: done[in ID, in req, in handle, out res]
+ P -> I: result[in ID, in req, in handle, out res]
+}

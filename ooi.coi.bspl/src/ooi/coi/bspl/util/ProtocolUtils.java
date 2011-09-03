@@ -15,8 +15,21 @@ import com.ektimisi.precedence.solver.LexicalConstants;
 
 public class ProtocolUtils {
 
-  // Will later extend this to deal with other References besides Messages
   public static boolean usesParam(EObject aRef, Parameter param, kAdornment adornment) {
+    if (aRef instanceof Message) 
+      return usesParamMessage(aRef, param, adornment);
+    else
+      return usesParamReference(aRef, param, adornment);
+  }
+
+  // TODO Need this to deal with other References besides Messages
+  private static boolean usesParamReference(EObject aRef, Parameter param,
+      kAdornment adornment) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  private static boolean usesParamMessage(EObject aRef, Parameter param, kAdornment adornment) {
     Message aMsg = (Message) aRef;
     EList<ParamRef> paramRefs = aMsg.getParams();
     for (ParamRef paramRef : paramRefs) {

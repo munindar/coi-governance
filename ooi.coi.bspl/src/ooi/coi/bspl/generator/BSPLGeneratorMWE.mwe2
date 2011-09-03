@@ -32,7 +32,7 @@ Workflow {
 
   component = BSPLReader {
 //  	  uri = "protocols/AbruptCancel.bspl"
-  	  uri = "protocols/BuyerSellerOffer.bspl"
+//  	  uri = "protocols/BuyerSellerOffer.bspl"
 //        uri = "protocols/OneMessage.bspl"
 //        uri = "protocols/ANFQueue.bspl"
 //        uri = "protocols/PurchaseNoReject.bspl"
@@ -43,11 +43,14 @@ Workflow {
 //        uri = "protocols/AbruptCancel.bspl"
 //        uri = "protocols/.bspl"
 //        uri = "protocols/.bspl"
+//        uri = "protocols/RequestNoNotification.bspl"
+//        uri = "protocols/RequestNotification.bspl"
+        uri = "protocols/RequestOptionalNotification.bspl"
   }
 
   component = Checker {}
 
-// COMMENTED OUT TEMPORARILY
+// TODO: Need to fix that Checker writes a boolean but the following expects a resource
   component = BSPLtoMessageLogSchemaPyKE {}
 
 //  component = BSPLtoMessageLogSchemaSQL {}

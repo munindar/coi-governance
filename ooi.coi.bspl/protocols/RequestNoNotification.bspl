@@ -1,0 +1,12 @@
+protocol RequestNoNotification {
+ role I, P
+ parameter out ID key, out req key, out res
+
+ I -> P: request[out ID, out req]
+
+ P -> I: refuse[in ID, in req, out res]
+
+ P -> I: fail[in ID, in req, out res]
+ P -> I: done[in ID, in req, out res]
+ P -> I: result[in ID, in req, out res]
+}

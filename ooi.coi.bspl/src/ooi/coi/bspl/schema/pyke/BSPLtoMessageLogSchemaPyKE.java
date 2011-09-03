@@ -8,7 +8,6 @@ import ooi.coi.bspl.bSPL.ParamDecl;
 import ooi.coi.bspl.bSPL.ParamRef;
 import ooi.coi.bspl.bSPL.Parameter;
 import ooi.coi.bspl.bSPL.Role;
-import ooi.coi.bspl.semantic.Checker;
 import ooi.coi.bspl.util.WorkflowComponentWithSlot;
 
 import org.apache.log4j.Level;
@@ -84,7 +83,7 @@ public class BSPLtoMessageLogSchemaPyKE extends WorkflowComponentWithSlot {
     }
     if (!found) {
     	foundTable = new MessageLogTable(messageName);
-      logger.info("Created table= " + foundTable + " of name= " + foundTable.getName() + " for role= " + roleName);
+      logger.info("Created table= " + foundTable.getName() + " for role= " + roleName);
     	roleSchemas.insertValueUnique(roleName, foundTable);
     }
     return foundTable;

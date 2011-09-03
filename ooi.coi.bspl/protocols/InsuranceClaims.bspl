@@ -1,7 +1,8 @@
-Insurance-Claims {
+InsuranceClaims {
  role Vendor, Subscriber
  parameter out policyNO key, out reqForClaim key, out claimResponse
-
+ private details
+ 
  Vendor -> Subscriber: createPolicy[out policyNO, out details]
  // means \C(Vendor, Subscriber, serviceReq[policyNO, reqForClaim], claimService[policyNO, reqForClaim, claimResponse])
  Subscriber -> Vendor: serviceReq[in policyNO, out reqForClaim]

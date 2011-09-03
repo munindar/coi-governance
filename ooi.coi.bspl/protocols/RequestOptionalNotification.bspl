@@ -1,0 +1,19 @@
+protocol RequestOptionalNotification {
+ role I, P
+ parameter out ID key, out req key, out res
+ private handle, notify
+
+ I -> P: request[out ID, out req, out notify]
+ I -> P: requestb[out ID, out req, nil notify]
+
+ P -> I: refuse[in ID, in req, out handle, out res]
+ P -> I: agree[in ID, in req, out handle, in notify]
+
+ P -> I: fail[in ID, in req, in handle, out res]
+ P -> I: done[in ID, in req, in handle, out res]
+ P -> I: result[in ID, in req, in handle, out res]
+
+ P -> I: failb[in ID, in req, nil notify, out res]
+ P -> I: doneb[in ID, in req, nil notify, out res]
+ P -> I: resultb[in ID, in req, nil notify, out res]
+}

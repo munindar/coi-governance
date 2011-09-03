@@ -1,10 +1,10 @@
 GBPD {
  role T, M
- parameter reqID key, query, res
+ parameter io reqID key, io query, io res
 
- T -> M: priceRequest[out reqID, out query]
- T -> M: priceRequest[in reqID, in query]
+ T -> M: priceRequesta[out reqID, out query]
+ T -> M: priceRequestb[in reqID, in query]
 
- M -> T: priceResponse[in reqID, in query, out res]
- M -> T: priceResponse[in reqID, in query, in res]
+ M -> T: priceResponsea[in reqID, in query, out res]
+ M -> T: priceResponseb[in reqID, in query, in res]
 }

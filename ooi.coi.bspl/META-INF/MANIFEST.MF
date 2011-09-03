@@ -22,7 +22,7 @@ Import-Package: ooi.coi.bspl.bSPL,
  org.apache.log4j,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.xtext.xtend2.lib
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: ooi.coi.bspl,
  ooi.coi.bspl.bSPL,
  ooi.coi.bspl.bSPL.impl,
