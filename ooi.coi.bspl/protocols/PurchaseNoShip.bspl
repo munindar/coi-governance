@@ -1,0 +1,18 @@
+protocol PurchaseNoShip {
+ role Buyer, Seller, Shipper
+ parameter out ID key, out item, out price, out outcome
+ private address, response
+
+ Buyer -> Seller: rfq [out ID, out item]
+ Seller -> Buyer: quote [in ID, in item, out price]
+ Buyer -> Seller: accept [in ID, in item, in price, out address, out response]
+ Buyer -> Seller: reject [in ID, in item, in price, out outcome, out response]
+
+// By removing the ship message below, we make the accept path nonexecutable.
+// In fact, the enactment would block in the sense that no further messages  
+// would be allowed even though the protocol enactment would not have
+// concluded due to the absence of a binding for the parameter outcome.
+// Seller -> Shipper: ship [in ID, in item, in address]
+
+ Shipper -> Buyer: deliver [in ID, in item, in address, out outcome]
+}

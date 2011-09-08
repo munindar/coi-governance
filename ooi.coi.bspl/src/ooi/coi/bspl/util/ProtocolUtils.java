@@ -76,6 +76,16 @@ public class ProtocolUtils {
     return sb.toString();
   }
 
+  public static String stringify(Object[] l, String lparen, String sep, String rparen) {
+    StringBuffer sb = new StringBuffer();
+    sb.append(lparen);
+    sb.append(l[0]);
+    for (int i=1; i<l.length; i++)
+      sb.append(sep).append(stringify(l[i]));
+    sb.append(rparen);
+    return sb.toString();
+  }
+
   public static String stringify(Object m) {
     if (m instanceof Message)
       return ((Message)m).getName();
