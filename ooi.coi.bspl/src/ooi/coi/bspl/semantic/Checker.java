@@ -79,25 +79,21 @@ public class Checker extends WorkflowComponentWithSlot {
     ctx.put(this.getSlot(), resource);
   }
 
-  private boolean checkAtomicity(PrecedenceSolver aSolver, BSPL theProtocol) {
-    this.generateMaximalityClauses(aSolver, theProtocol);
-    this.generateNonCompletionClause(aSolver, theProtocol);
-
-    boolean result = false;
-
+  private boolean checkEnactability(PrecedenceSolver aSolver, BSPL theProtocol) {
+    this.generateCompletionClauses(aSolver, theProtocol);
     this.loadSolver(aSolver);
+    boolean result = false;
     try {
       result = aSolver.solve(Checker.NUMBER_OF_MODELS);
     } catch (final Exception e) {
       Checker.logger.error(e.getMessage());
     }
-
     if (result) {
-      Checker.logger.info("Protocol " + theProtocol.getName() + " violates atomicity on some enactments");
+      Checker.logger.info("Protocol " + theProtocol.getName() + " is enactable");
     } else {
-      Checker.logger.info("Protocol " + theProtocol.getName() + " ensures atomicity");
+      Checker.logger.info("Protocol " + theProtocol.getName() + " is not enactable");
     }
-    return !result;
+    return result;
   }
 
   private boolean checkIntegrity(PrecedenceSolver aSolver, BSPL theProtocol) {
@@ -121,21 +117,25 @@ public class Checker extends WorkflowComponentWithSlot {
     return !result;
   }
 
-  private boolean checkEnactability(PrecedenceSolver aSolver, BSPL theProtocol) {
-    this.generateCompletionClauses(aSolver, theProtocol);
-    this.loadSolver(aSolver);
+  private boolean checkAtomicity(PrecedenceSolver aSolver, BSPL theProtocol) {
+    this.generateMaximalityClauses(aSolver, theProtocol);
+    this.generateNonCompletionClause(aSolver, theProtocol);
+
     boolean result = false;
+
+    this.loadSolver(aSolver);
     try {
       result = aSolver.solve(Checker.NUMBER_OF_MODELS);
     } catch (final Exception e) {
       Checker.logger.error(e.getMessage());
     }
+
     if (result) {
-      Checker.logger.info("Protocol " + theProtocol.getName() + " is enactable");
+      Checker.logger.info("Protocol " + theProtocol.getName() + " violates atomicity on some enactments");
     } else {
-      Checker.logger.info("Protocol " + theProtocol.getName() + " is not enactable");
+      Checker.logger.info("Protocol " + theProtocol.getName() + " ensures atomicity");
     }
-    return result;
+    return !result;
   }
 
   private void loadSolver(PrecedenceSolver aSolver) {
@@ -154,49 +154,6 @@ public class Checker extends WorkflowComponentWithSlot {
 
   public void addLiteralsAsClause(AbstractLiteral... literals) {
     this.addClause(literals);
-  }
-
-  private void generateMaximalityClauses(PrecedenceSolver aSolver, BSPL theProtocol) {
-    for (final EObject aRef : theProtocol.getReferences()) {
-      /*
-       * TODO Should generate different literals for each copy of an overloaded
-       * message schema. For example, if the protocol has two rfq messages with
-       * different schemas, we need two rfq literals, e.g., rfq0 and rfq1, for
-       * the sender and likewise two for the receiver.
-       */
-      final Message aMessage = (Message) aRef;
-      this.generateMessageMaximalityClauses(aSolver, aMessage);
-    }
-  }
-  
-  private void generateNonCompletionClause(PrecedenceSolver aSolver, BSPL theProtocol) {
-    final List<AbstractLiteral> protocolOutParamLiterals = new ArrayList<AbstractLiteral>();
-    for (final Parameter p : paramsToRolesToRefs.keySet()) {
-      if (this.isPublicOut(theProtocol, p)) {
-        final MapSet<Role, Message> rolesToRefs = paramsToRolesToRefs.get(p);
-         
-          List<AbstractLiteral> paramInstancesIf = new ArrayList<AbstractLiteral>();
-          List<AbstractLiteral> paramInstancesOnlyIf = new ArrayList<AbstractLiteral>();
-          final AbstractLiteral paramLiteralPos = this.makeLiteral(aSolver, theProtocol.getName(), p, false);
-          final AbstractLiteral paramLiteralNeg = this.makeLiteral(aSolver, theProtocol.getName(), p, true);
-          paramInstancesIf.add(paramLiteralNeg);
-          paramInstancesOnlyIf.add(paramLiteralPos);
-          
-          for (Role r : rolesToRefs.keySet()) {
-            final AbstractLiteral messageLiteralPos = this.makeLiteral(aSolver, r, p, false);
-            final AbstractLiteral messageLiteralNeg = this.makeLiteral(aSolver, r, p, true);
-            paramInstancesIf.add(messageLiteralPos);
-            paramInstancesOnlyIf.add(messageLiteralNeg);
-          }     
-
-          this.addClause(paramInstancesIf);
-          this.addClause(paramInstancesOnlyIf);
-          protocolOutParamLiterals.add(paramLiteralNeg);
-      }
-    }
-    
-    this.addClause(protocolOutParamLiterals);
-    Checker.logger.warn("Noncompletion clause: " + ProtocolUtils.stringify(protocolOutParamLiterals));
   }
 
   private void generateCausalStructure(PrecedenceSolver aSolver, BSPL theProtocol) {
@@ -236,6 +193,87 @@ public class Checker extends WorkflowComponentWithSlot {
         }
       }
    }
+  }
+
+  private void generateParameterClauses(PrecedenceSolver aSolver) {
+    for (final Role r : rolesToParamsToRefs.keySet()) {
+      final MapSet<Parameter, Message> paramMap = rolesToParamsToRefs.get(r);
+      for (final Parameter p : paramMap.keySet()) {
+        final AbstractLiteral roleParameterPos = this.makeLiteral(aSolver, r, p, false);
+        final AbstractLiteral roleParameterNeg = this.makeLiteral(aSolver, r, p, true);
+
+        final List<AbstractLiteral> togethers = new ArrayList<AbstractLiteral>();
+        togethers.add(roleParameterNeg);
+
+        for (final Message m : paramMap.getValues(p)) {
+          final AbstractLiteral roleMessagePos = this.makeLiteral(aSolver, r, m, false);
+          final AbstractLiteral paramUponMessageRole = aSolver.makeTogetherLiteral(roleMessagePos, roleParameterPos);
+          togethers.add(paramUponMessageRole);
+        }
+
+        this.addClause(togethers);
+        Checker.logger.warn("Causality (parameter occurrence): " + ProtocolUtils.stringify(togethers));
+      }
+    }
+  }
+
+  private boolean isMessageOut(Message m, Parameter p) {
+    for (final ParamRef pRef : m.getParams()) {
+      if (p == pRef.getParam() && (pRef.getAdornment() == kAdornment.OUT))
+        return true;
+    }
+    return false;
+  }
+
+  private boolean isPublicOut(BSPL theProtocol, Parameter p) {
+    for (final ParamDecl pDecl : theProtocol.getPublicParams()) {
+      if (p == pDecl.getParam() && (pDecl.getAdornment() == kAdornment.OUT))
+        return true;
+    }
+    return false;
+  }
+
+  private void generateMessageMessageClauses(PrecedenceSolver aSolver, Message first, Message second) {
+    final Role firstSender = first.getSender();
+    final Role secondSender = second.getSender();
+
+    final AbstractLiteral firstPosS = this.makeLiteral(aSolver, firstSender, first, false);
+    final AbstractLiteral secondPosS = this.makeLiteral(aSolver, secondSender, second, false);
+    final AbstractLiteral firstNegS = this.makeLiteral(aSolver, firstSender, first, true);
+    final AbstractLiteral secondNegS = this.makeLiteral(aSolver, secondSender, second, true);
+
+    this.addNonoccurrenceClauses(aSolver, firstPosS, secondPosS, firstNegS, secondNegS);
+    
+    if (firstSender == secondSender) {
+
+      if (firstPosS.compareTo(secondPosS) < 0) {
+        this.addNotTogetherClause(aSolver, firstPosS, secondPosS);
+        // AbstractLiteral firstPosR = makeLiteral(aSolver, first.getReceiver(), first, false);
+        // AbstractLiteral secondPosR = makeLiteral(aSolver, second.getReceiver(), second, false);
+        // addNotTogetherClause(aSolver, firstPosR, secondPosR);
+      }
+    }
+  }
+
+  private void addNonoccurrenceClauses(PrecedenceSolver aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos, AbstractLiteral firstNeg, AbstractLiteral secondNeg) {
+    if (firstPos != secondPos) {
+      final AbstractLiteral togetherNonFirstNonSecond = aSolver.makeTogetherLiteral(firstNeg, secondNeg);
+      final AbstractLiteral[] togetherNon = { firstPos, secondPos, togetherNonFirstNonSecond };
+      this.addClause(togetherNon);
+      Checker.logger.warn("All nonoccurrences are together: (" + firstPos.getName() + " + " + secondPos.getName() + " + " + togetherNonFirstNonSecond.getName() + ")");
+      
+      final AbstractLiteral sequenceNonFirstSecond = aSolver.makeSequenceLiteral(firstNeg, secondPos);
+      final AbstractLiteral[] sequenceNon = { firstPos, secondNeg, sequenceNonFirstSecond };
+      this.addClause(sequenceNon);
+      Checker.logger.warn("Nonoccurrences precede occurrences: (" + firstPos.getName() + " + " + secondNeg.getName() + " + " + sequenceNonFirstSecond.getName() + ")"); 
+    }
+  }
+
+  private void addNotTogetherClause(PrecedenceSolver aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos) {
+    final AbstractLiteral togetherFirstSecond = aSolver.makeTogetherLiteral(firstPos, secondPos);
+    final AbstractLiteral[] notTogether = { aSolver.getNegatedLiteral(togetherFirstSecond) };
+    this.addClause(notTogether);
+    Checker.logger.warn("Messages _NOT_ together: (" + togetherFirstSecond.getName() + ")");
   }
 
   private boolean generateIntegrityClauses(PrecedenceSolver aSolver, BSPL theProtocol) {
@@ -330,85 +368,47 @@ public class Checker extends WorkflowComponentWithSlot {
     }
   }
 
-  private void generateParameterClauses(PrecedenceSolver aSolver) {
-    for (final Role r : rolesToParamsToRefs.keySet()) {
-      final MapSet<Parameter, Message> paramMap = rolesToParamsToRefs.get(r);
-      for (final Parameter p : paramMap.keySet()) {
-        final AbstractLiteral roleParameterPos = this.makeLiteral(aSolver, r, p, false);
-        final AbstractLiteral roleParameterNeg = this.makeLiteral(aSolver, r, p, true);
+  private void generateMaximalityClauses(PrecedenceSolver aSolver, BSPL theProtocol) {
+    for (final EObject aRef : theProtocol.getReferences()) {
+      /*
+       * TODO Should generate different literals for each copy of an overloaded
+       * message schema. For example, if the protocol has two rfq messages with
+       * different schemas, we need two rfq literals, e.g., rfq0 and rfq1, for
+       * the sender and likewise two for the receiver.
+       */
+      final Message aMessage = (Message) aRef;
+      this.generateMessageMaximalityClauses(aSolver, aMessage);
+    }
+  }
+  
+  private void generateNonCompletionClause(PrecedenceSolver aSolver, BSPL theProtocol) {
+    final List<AbstractLiteral> protocolOutParamLiterals = new ArrayList<AbstractLiteral>();
+    for (final Parameter p : paramsToRolesToRefs.keySet()) {
+      if (this.isPublicOut(theProtocol, p)) {
+        final MapSet<Role, Message> rolesToRefs = paramsToRolesToRefs.get(p);
+         
+          List<AbstractLiteral> paramInstancesIf = new ArrayList<AbstractLiteral>();
+          List<AbstractLiteral> paramInstancesOnlyIf = new ArrayList<AbstractLiteral>();
+          final AbstractLiteral paramLiteralPos = this.makeLiteral(aSolver, theProtocol.getName(), p, false);
+          final AbstractLiteral paramLiteralNeg = this.makeLiteral(aSolver, theProtocol.getName(), p, true);
+          paramInstancesIf.add(paramLiteralNeg);
+          paramInstancesOnlyIf.add(paramLiteralPos);
+          
+          for (Role r : rolesToRefs.keySet()) {
+            final AbstractLiteral messageLiteralPos = this.makeLiteral(aSolver, r, p, false);
+            final AbstractLiteral messageLiteralNeg = this.makeLiteral(aSolver, r, p, true);
+            paramInstancesIf.add(messageLiteralPos);
+            paramInstancesOnlyIf.add(messageLiteralNeg);
+          }     
 
-        final List<AbstractLiteral> togethers = new ArrayList<AbstractLiteral>();
-        togethers.add(roleParameterNeg);
-
-        for (final Message m : paramMap.getValues(p)) {
-          final AbstractLiteral roleMessagePos = this.makeLiteral(aSolver, r, m, false);
-          final AbstractLiteral paramUponMessageRole = aSolver.makeTogetherLiteral(roleMessagePos, roleParameterPos);
-          togethers.add(paramUponMessageRole);
-        }
-
-        this.addClause(togethers);
-        Checker.logger.warn("Causality (parameter occurrence): " + ProtocolUtils.stringify(togethers));
+          this.addClause(paramInstancesIf);
+          this.addClause(paramInstancesOnlyIf);
+          protocolOutParamLiterals.add(paramLiteralNeg);
       }
     }
-  }
-
-  private boolean isMessageOut(Message m, Parameter p) {
-    for (final ParamRef pRef : m.getParams()) {
-      if (p == pRef.getParam() && (pRef.getAdornment() == kAdornment.OUT))
-        return true;
-    }
-    return false;
-  }
-
-  private boolean isPublicOut(BSPL theProtocol, Parameter p) {
-    for (final ParamDecl pDecl : theProtocol.getPublicParams()) {
-      if (p == pDecl.getParam() && (pDecl.getAdornment() == kAdornment.OUT))
-        return true;
-    }
-    return false;
-  }
-
-  private void generateMessageMessageClauses(PrecedenceSolver aSolver, Message first, Message second) {
-    final Role firstSender = first.getSender();
-    final Role secondSender = second.getSender();
-
-    final AbstractLiteral firstPosS = this.makeLiteral(aSolver, firstSender, first, false);
-    final AbstractLiteral secondPosS = this.makeLiteral(aSolver, secondSender, second, false);
-    final AbstractLiteral firstNegS = this.makeLiteral(aSolver, firstSender, first, true);
-    final AbstractLiteral secondNegS = this.makeLiteral(aSolver, secondSender, second, true);
-
-    this.addNonoccurrenceClauses(aSolver, firstPosS, secondPosS, firstNegS, secondNegS);
     
-    if (firstSender == secondSender) {
-
-      if (firstPosS.compareTo(secondPosS) < 0) {
-        this.addNotTogetherClause(aSolver, firstPosS, secondPosS);
-        // AbstractLiteral firstPosR = makeLiteral(aSolver, first.getReceiver(), first, false);
-        // AbstractLiteral secondPosR = makeLiteral(aSolver, second.getReceiver(), second, false);
-        // addNotTogetherClause(aSolver, firstPosR, secondPosR);
-      }
-    }
-  }
-
-  private void addNonoccurrenceClauses(PrecedenceSolver aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos, AbstractLiteral firstNeg, AbstractLiteral secondNeg) {
-    if (firstPos != secondPos) {
-      final AbstractLiteral togetherNonFirstNonSecond = aSolver.makeTogetherLiteral(firstNeg, secondNeg);
-      final AbstractLiteral[] togetherNon = { firstPos, secondPos, togetherNonFirstNonSecond };
-      this.addClause(togetherNon);
-      Checker.logger.warn("All nonoccurrences are together: (" + firstPos.getName() + " + " + secondPos.getName() + " + " + togetherNonFirstNonSecond.getName() + ")");
-      
-      final AbstractLiteral sequenceNonFirstSecond = aSolver.makeSequenceLiteral(firstNeg, secondPos);
-      final AbstractLiteral[] sequenceNon = { firstPos, secondNeg, sequenceNonFirstSecond };
-      this.addClause(sequenceNon);
-      Checker.logger.warn("Nonoccurrences precede occurrences: (" + firstPos.getName() + " + " + secondNeg.getName() + " + " + sequenceNonFirstSecond.getName() + ")"); 
-    }
-  }
-
-  private void addNotTogetherClause(PrecedenceSolver aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos) {
-    final AbstractLiteral togetherFirstSecond = aSolver.makeTogetherLiteral(firstPos, secondPos);
-    final AbstractLiteral[] notTogether = { aSolver.getNegatedLiteral(togetherFirstSecond) };
-    this.addClause(notTogether);
-    Checker.logger.warn("Messages _NOT_ together: (" + togetherFirstSecond.getName() + ")");
+    this.addClause(protocolOutParamLiterals);
+    Checker.logger.warn("Noncompletion clause: " + ProtocolUtils.stringify(protocolOutParamLiterals));
   }
 
   private void generateMessageMaximalityClauses(PrecedenceSolver aSolver, Message m) {
@@ -447,7 +447,7 @@ public class Checker extends WorkflowComponentWithSlot {
   private void messageDeliveryClause(PrecedenceSolver aSolver, AbstractLiteral senderMessagePos, AbstractLiteral receiverMessagePos, AbstractLiteral senderMessageNeg) {
     final AbstractLiteral successfulTransmission = aSolver.makeSequenceLiteral(senderMessagePos, receiverMessagePos);
     this.addLiteralsAsClause(senderMessageNeg, successfulTransmission);
-    Checker.logger.warn("Causality (message occurrence): (" +senderMessageNeg.getName()+ " + " +successfulTransmission.getName()+ ")");
+    Checker.logger.warn("Message delivery succeeds: (" +senderMessageNeg.getName()+ " + " +successfulTransmission.getName()+ ")");
   }
 
   /*
