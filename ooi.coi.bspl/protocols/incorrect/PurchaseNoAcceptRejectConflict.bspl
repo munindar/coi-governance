@@ -1,0 +1,24 @@
+protocol PurchaseNoAcceptRejectConflict {
+
+// Compared to the original Purchase, this variant removes the private 
+// parameter response and thus eliminates the local conflict between
+// the accept and reject messages.
+// Removing that conflict violates atomicity.
+
+ role Buyer, Seller, Shipper
+ parameter out ID key, out item, out price, out outcome
+ private address
+
+
+ Buyer -> Seller: rfq [out ID, out item]
+ 
+ Seller -> Buyer: quote [in ID, in item, out price]
+ 
+ Buyer -> Seller: accept [in ID, in item, in price, out address]
+ 
+ Buyer -> Seller: reject [in ID, in item, in price, out outcome]
+
+ Seller -> Shipper: ship [in ID, in item, in address]
+ 
+ Shipper -> Buyer: deliver [in ID, in item, in address, out outcome]
+}

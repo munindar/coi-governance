@@ -1,0 +1,4 @@
+LogTable('inPoutQ','p','q');
+KeyTable('inPoutQ','p');
+LogTable('outPinQ','p','q');
+KeyTable('outPinQ','p');

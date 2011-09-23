@@ -4,11 +4,20 @@ protocol Purchase {
  private address, response
 
  Buyer -> Seller: rfq [out ID, out item]
+ 
+ // The commented out means clause below is merely an illustration of how we 
+ // might assert such clauses.
+ // Asserting such clauses would take us beyond BSPL, as currently construed.  
  Seller -> Buyer: quote [in ID, in item, out price]
  // means Commitment(Seller, Buyer, pay(ID, price), deliver(ID, item))
+  
+
  Buyer -> Seller: accept [in ID, in item, in price, out address, out response]
+ 
  Buyer -> Seller: reject [in ID, in item, in price, out outcome, out response]
 
+ 
  Seller -> Shipper: ship [in ID, in item, in address]
+ 
  Shipper -> Buyer: deliver [in ID, in item, in address, out outcome]
 }

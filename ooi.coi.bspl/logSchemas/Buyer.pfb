@@ -1,0 +1,10 @@
+LogTable('rfq','ID','item');
+KeyTable('rfq','ID');
+LogTable('deliver','ID','item','address','outcome');
+KeyTable('deliver','ID');
+LogTable('reject','ID','item','price','outcome','response');
+KeyTable('reject','ID');
+LogTable('accept','ID','item','price','address','response');
+KeyTable('accept','ID');
+LogTable('quote','ID','item','price');
+KeyTable('quote','ID');
