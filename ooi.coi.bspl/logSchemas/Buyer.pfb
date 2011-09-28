@@ -1,0 +1,8 @@
+LogTable('quote','ID','item','price');
+KeyTable('quote','ID');
+LogTable('accept','ID','item','price','address','response');
+KeyTable('accept','ID');
+LogTable('deliver','ID','item','address','outcome');
+KeyTable('deliver','ID');
+LogTable('rfq','ID','item');
+KeyTable('rfq','ID');

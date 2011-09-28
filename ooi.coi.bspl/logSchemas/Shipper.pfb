@@ -1,0 +1,4 @@
+LogTable('deliver','ID','item','address','outcome');
+KeyTable('deliver','ID');
+LogTable('ship','ID','item','address');
+KeyTable('ship','ID');
