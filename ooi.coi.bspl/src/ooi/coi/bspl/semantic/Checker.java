@@ -25,20 +25,22 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.mwe2.runtime.workflow.IWorkflowContext;
 
 import com.ektimisi.precedence.solver.AbstractLiteral;
-import com.ektimisi.precedence.solver.PrecedenceSolver;
+import ooi.coi.bspl.semantic.SolverFacade;
 import com.ektimisi.precedence.util.MapSet;
 import com.google.common.collect.Iterators;
 
 public class Checker extends WorkflowComponentWithSlot {
-
-  private static final int NUMBER_OF_MODELS = 3;
+  
+  private String graphVizFile;
+  private String uriPrefix;
 
   private static Logger logger = Logger.getLogger(Checker.class);
   static {
-    logger.setLevel(Level.INFO); // ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF
-    Logger.getLogger(com.ektimisi.precedence.util.Graph.class).setLevel(Level.WARN);
+    logger.setLevel(Level.DEBUG); // ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF
+    Logger.getLogger(com.ektimisi.precedence.util.Graph.class).setLevel(Level.INFO);
+    Logger.getLogger(com.ektimisi.precedence.solver.GraphBuilder.class).setLevel(Level.INFO);
     Logger.getLogger(com.ektimisi.precedence.util.MapSet.class).setLevel(Level.WARN);
-    Logger.getLogger(com.ektimisi.precedence.solver.PrecedenceSolver.class).setLevel(Level.WARN);
+    Logger.getLogger(com.ektimisi.precedence.solver.PrecedenceSolver.class).setLevel(Level.INFO);
     Logger.getLogger(com.ektimisi.precedence.solver.Pairings.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Literal.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Sequence.class).setLevel(Level.WARN);
@@ -47,10 +49,11 @@ public class Checker extends WorkflowComponentWithSlot {
     Logger.getLogger(com.ektimisi.precedence.solver.Sequences.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Together.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Togethers.class).setLevel(Level.WARN);
+
+    Logger.getLogger(ooi.coi.bspl.schema.pyke.BSPLtoMessageLogSchemaPyKE.class).setLevel(Level.WARN);
   }
 
-  private PrecedenceSolver theSolver;
-  private final List<AbstractLiteral[]> theClauses = new ArrayList<AbstractLiteral[]>();
+  private SolverFacade theSolver;
   private final NestedMap<Role, Parameter, Message> rolesToParamsToRefs = new NestedMap<Role, Parameter, Message>();
   private final NestedMap<Parameter, Role, Message> paramsToRolesToRefs = new NestedMap<Parameter, Role, Message>();
   private final MapSet<Parameter, Message> outParamsToRolesToRefs = new MapSet<Parameter, Message>();
@@ -65,13 +68,14 @@ public class Checker extends WorkflowComponentWithSlot {
     Checker.logger.info("############################");
     Checker.logger.info("#### Checking protocol " + theProtocol.getName());
 
-    theSolver = new PrecedenceSolver(null);
+    theSolver = new SolverFacade();
+    
     this.generateCausalStructure(theSolver, theProtocol);
 
     boolean result = true;
 //    result &= this.checkEnactability(theSolver, theProtocol);
-//    result &= this.checkIntegrity(theSolver, theProtocol);
-    result &= this.checkAtomicity(theSolver, theProtocol);
+    result &= this.checkIntegrity(theSolver, theProtocol);
+//    result &= this.checkAtomicity(theSolver, theProtocol);
 
     if (result)
       Checker.logger.info("Protocol " + theProtocol.getName() + " passes all checks");
@@ -79,15 +83,10 @@ public class Checker extends WorkflowComponentWithSlot {
     ctx.put(this.getSlot(), resource);
   }
 
-  private boolean checkEnactability(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private boolean checkEnactability(SolverFacade aSolver, BSPL theProtocol) {
     this.generateCompletionClauses(aSolver, theProtocol);
-    this.loadSolver(aSolver);
-    boolean result = false;
-    try {
-      result = aSolver.solve(Checker.NUMBER_OF_MODELS);
-    } catch (final Exception e) {
-      Checker.logger.error(e.getMessage());
-    }
+    aSolver.loadSolver();
+    boolean result = aSolver.solve(theProtocol, uriPrefix, graphVizFile);
     if (result) {
       Checker.logger.info("Protocol " + theProtocol.getName() + " is enactable");
     } else {
@@ -96,17 +95,16 @@ public class Checker extends WorkflowComponentWithSlot {
     return result;
   }
 
-  private boolean checkIntegrity(PrecedenceSolver aSolver, BSPL theProtocol) {
+  /* TODO This repeats the completion clauses used in checkEnactability */
+  private boolean checkIntegrity(SolverFacade aSolver, BSPL theProtocol) {
+    this.generateCompletionClauses(aSolver, theProtocol);
     final boolean clausesAdded = this.generateIntegrityClauses(aSolver, theProtocol);
+    aSolver.loadSolver();
+
     boolean result = false;
 
     if (clausesAdded) {
-      this.loadSolver(aSolver);
-      try {
-        result = aSolver.solve(Checker.NUMBER_OF_MODELS);
-      } catch (final Exception e) {
-        Checker.logger.error(e.getMessage());
-      }
+      result = aSolver.solve(theProtocol, uriPrefix, graphVizFile);
     }
 
     if (result) {
@@ -117,18 +115,11 @@ public class Checker extends WorkflowComponentWithSlot {
     return !result;
   }
 
-  private boolean checkAtomicity(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private boolean checkAtomicity(SolverFacade aSolver, BSPL theProtocol) {
     this.generateMaximalityClauses(aSolver, theProtocol);
     this.generateNonCompletionClause(aSolver, theProtocol);
 
-    boolean result = false;
-
-    this.loadSolver(aSolver);
-    try {
-      result = aSolver.solve(Checker.NUMBER_OF_MODELS);
-    } catch (final Exception e) {
-      Checker.logger.error(e.getMessage());
-    }
+    boolean result = aSolver.solve(theProtocol, uriPrefix, graphVizFile);
 
     if (result) {
       Checker.logger.info("Protocol " + theProtocol.getName() + " violates atomicity on some enactments");
@@ -138,25 +129,7 @@ public class Checker extends WorkflowComponentWithSlot {
     return !result;
   }
 
-  private void loadSolver(PrecedenceSolver aSolver) {
-    for (final AbstractLiteral[] aClause : theClauses)
-      aSolver.addOneClause(aClause);
-  }
-
-  private void addClause(AbstractLiteral[] aClause) {
-    theClauses.add(aClause);
-  }
-
-  private void addClause(List<AbstractLiteral> listClause) {
-    final AbstractLiteral[] aClause = listClause.toArray(new AbstractLiteral[listClause.size()]);
-    this.addClause(aClause);
-  }
-
-  public void addLiteralsAsClause(AbstractLiteral... literals) {
-    this.addClause(literals);
-  }
-
-  private void generateCausalStructure(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private void generateCausalStructure(SolverFacade aSolver, BSPL theProtocol) {
     for (final EObject aRef : theProtocol.getReferences()) {
       /*
        * TODO Should generate different literals for each copy of an overloaded
@@ -177,42 +150,42 @@ public class Checker extends WorkflowComponentWithSlot {
     this.generateParameterNonoccurrenceClauses(aSolver);
   }
 
-  private void generateParameterNonoccurrenceClauses(PrecedenceSolver aSolver) {
+  private void generateParameterNonoccurrenceClauses(SolverFacade aSolver) {
     for (final Parameter one : paramsToRolesToRefs.keySet()) {
       for (Role oneR : paramsToRolesToRefs.get(one).keySet()) {
-        final AbstractLiteral firstPosS = this.makeLiteral(aSolver, oneR, one, false);
-        final AbstractLiteral firstNegS = this.makeLiteral(aSolver, oneR, one, true);
+        final AbstractLiteral firstPosS = aSolver.makeLiteral(oneR, one, false);
+        final AbstractLiteral firstNegS = aSolver.makeLiteral(oneR, one, true);
         
         for (final Parameter two : paramsToRolesToRefs.keySet()) {
           for (Role twoR : paramsToRolesToRefs.get(two).keySet()) {
-          final AbstractLiteral secondPosS = this.makeLiteral(aSolver, twoR, two, false);
-          final AbstractLiteral secondNegS = this.makeLiteral(aSolver, twoR, two, true);
+          final AbstractLiteral secondPosS = aSolver.makeLiteral(twoR, two, false);
+          final AbstractLiteral secondNegS = aSolver.makeLiteral(twoR, two, true);
 
           this.addNonoccurrenceClauses(aSolver, firstPosS, secondPosS, firstNegS, secondNegS);
           }
         }
       }
-   }
+    }
   }
 
-  private void generateParameterClauses(PrecedenceSolver aSolver) {
+  private void generateParameterClauses(SolverFacade aSolver) {
     for (final Role r : rolesToParamsToRefs.keySet()) {
       final MapSet<Parameter, Message> paramMap = rolesToParamsToRefs.get(r);
       for (final Parameter p : paramMap.keySet()) {
-        final AbstractLiteral roleParameterPos = this.makeLiteral(aSolver, r, p, false);
-        final AbstractLiteral roleParameterNeg = this.makeLiteral(aSolver, r, p, true);
+        final AbstractLiteral roleParameterPos = aSolver.makeLiteral(r, p, false);
+        final AbstractLiteral roleParameterNeg = aSolver.makeLiteral(r, p, true);
 
         final List<AbstractLiteral> togethers = new ArrayList<AbstractLiteral>();
         togethers.add(roleParameterNeg);
 
         for (final Message m : paramMap.getValues(p)) {
-          final AbstractLiteral roleMessagePos = this.makeLiteral(aSolver, r, m, false);
+          final AbstractLiteral roleMessagePos = aSolver.makeLiteral(r, m, false);
           final AbstractLiteral paramUponMessageRole = aSolver.makeTogetherLiteral(roleMessagePos, roleParameterPos);
           togethers.add(paramUponMessageRole);
         }
 
-        this.addClause(togethers);
-        Checker.logger.warn("Causality (parameter occurrence): " + ProtocolUtils.stringify(togethers));
+        aSolver.assertClause(togethers);
+        Checker.logger.debug("Causality (parameter occurrence): " + ProtocolUtils.stringify(togethers));
       }
     }
   }
@@ -233,14 +206,14 @@ public class Checker extends WorkflowComponentWithSlot {
     return false;
   }
 
-  private void generateMessageMessageClauses(PrecedenceSolver aSolver, Message first, Message second) {
+  private void generateMessageMessageClauses(SolverFacade aSolver, Message first, Message second) {
     final Role firstSender = first.getSender();
     final Role secondSender = second.getSender();
 
-    final AbstractLiteral firstPosS = this.makeLiteral(aSolver, firstSender, first, false);
-    final AbstractLiteral secondPosS = this.makeLiteral(aSolver, secondSender, second, false);
-    final AbstractLiteral firstNegS = this.makeLiteral(aSolver, firstSender, first, true);
-    final AbstractLiteral secondNegS = this.makeLiteral(aSolver, secondSender, second, true);
+    final AbstractLiteral firstPosS = aSolver.makeLiteral(firstSender, first, false);
+    final AbstractLiteral secondPosS = aSolver.makeLiteral(secondSender, second, false);
+    final AbstractLiteral firstNegS = aSolver.makeLiteral(firstSender, first, true);
+    final AbstractLiteral secondNegS = aSolver.makeLiteral(secondSender, second, true);
 
     this.addNonoccurrenceClauses(aSolver, firstPosS, secondPosS, firstNegS, secondNegS);
     
@@ -255,42 +228,42 @@ public class Checker extends WorkflowComponentWithSlot {
     }
   }
 
-  private void addNonoccurrenceClauses(PrecedenceSolver aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos, AbstractLiteral firstNeg, AbstractLiteral secondNeg) {
+  private void addNonoccurrenceClauses(SolverFacade aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos, AbstractLiteral firstNeg, AbstractLiteral secondNeg) {
     if (firstPos != secondPos) {
       final AbstractLiteral togetherNonFirstNonSecond = aSolver.makeTogetherLiteral(firstNeg, secondNeg);
       final AbstractLiteral[] togetherNon = { firstPos, secondPos, togetherNonFirstNonSecond };
-      this.addClause(togetherNon);
-      Checker.logger.warn("All nonoccurrences are together: (" + firstPos.getName() + " + " + secondPos.getName() + " + " + togetherNonFirstNonSecond.getName() + ")");
+      aSolver.assertClause(togetherNon);
+      Checker.logger.debug("All nonoccurrences are together: (" + firstPos.getName() + " + " + secondPos.getName() + " + " + togetherNonFirstNonSecond.getName() + ")");
       
       final AbstractLiteral sequenceNonFirstSecond = aSolver.makeSequenceLiteral(firstNeg, secondPos);
       final AbstractLiteral[] sequenceNon = { firstPos, secondNeg, sequenceNonFirstSecond };
-      this.addClause(sequenceNon);
-      Checker.logger.warn("Nonoccurrences precede occurrences: (" + firstPos.getName() + " + " + secondNeg.getName() + " + " + sequenceNonFirstSecond.getName() + ")"); 
+      aSolver.assertClause(sequenceNon);
+      Checker.logger.debug("Nonoccurrences precede occurrences: (" + firstPos.getName() + " + " + secondNeg.getName() + " + " + sequenceNonFirstSecond.getName() + ")"); 
     }
   }
 
-  private void addNotTogetherClause(PrecedenceSolver aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos) {
+  private void addNotTogetherClause(SolverFacade aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos) {
     final AbstractLiteral togetherFirstSecond = aSolver.makeTogetherLiteral(firstPos, secondPos);
     final AbstractLiteral[] notTogether = { aSolver.getNegatedLiteral(togetherFirstSecond) };
-    this.addClause(notTogether);
-    Checker.logger.warn("Messages _NOT_ together: (" + togetherFirstSecond.getName() + ")");
+    aSolver.assertClause(notTogether);
+    Checker.logger.debug("Messages _NOT_ together: (" + togetherFirstSecond.getName() + ")");
   }
 
-  private boolean generateIntegrityClauses(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private boolean generateIntegrityClauses(SolverFacade aSolver, BSPL theProtocol) {
     final List<ArrayList<AbstractLiteral>> competingMessages = this.getCompetingMessages(aSolver, theProtocol);
 
     if (!competingMessages.isEmpty()) {
       final List<ArrayList<AbstractLiteral>> allPairwiseClauses = this.generateAllPairwise(aSolver, competingMessages);
       for (final ArrayList<AbstractLiteral> pairwiseClause : allPairwiseClauses) {
-        this.addClause(pairwiseClause);
-        Checker.logger.warn("Integrity clause: " + ProtocolUtils.stringify(pairwiseClause));
+        aSolver.assertClause(pairwiseClause);
+        Checker.logger.debug("Integrity clause: " + ProtocolUtils.stringify(pairwiseClause));
       }
       return true;
     } else
       return false;
   }
 
-  private List<ArrayList<AbstractLiteral>> generateAllPairwise(PrecedenceSolver aSolver, List<ArrayList<AbstractLiteral>> competingMessages) {
+  private List<ArrayList<AbstractLiteral>> generateAllPairwise(SolverFacade aSolver, List<ArrayList<AbstractLiteral>> competingMessages) {
     List<ArrayList<AbstractLiteral>> allPairwiseClauses = this.makePairwiseClauses(aSolver, competingMessages.get(0));
     List<ArrayList<AbstractLiteral>> newPairwiseClauses;
 
@@ -313,7 +286,7 @@ public class Checker extends WorkflowComponentWithSlot {
     return allPairwiseClauses;
   }
 
-  private List<ArrayList<AbstractLiteral>> getCompetingMessages(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private List<ArrayList<AbstractLiteral>> getCompetingMessages(SolverFacade aSolver, BSPL theProtocol) {
     final List<ArrayList<AbstractLiteral>> competingMessages = new ArrayList<ArrayList<AbstractLiteral>>();
     for (final Parameter p : outParamsToRolesToRefs.keySet()) {
       final Collection<Message> messagesForParam = outParamsToRolesToRefs.getValues(p);
@@ -321,17 +294,17 @@ public class Checker extends WorkflowComponentWithSlot {
       if (messagesForParam.size() > 1) {
         final ArrayList<AbstractLiteral> messageLiterals = new ArrayList<AbstractLiteral>();
         for (final Message m : messagesForParam) {
-          final AbstractLiteral messageLiteral = this.makeLiteral(aSolver, m.getSender(), m, false);
+          final AbstractLiteral messageLiteral = aSolver.makeLiteral(m.getSender(), m, false);
           messageLiterals.add(messageLiteral);
         }
         competingMessages.add(messageLiterals); // TODO Remove this
       }
     }
-    Checker.logger.warn("Competing Messages: "+ ProtocolUtils.stringify(competingMessages));
+    Checker.logger.debug("Competing Messages: "+ ProtocolUtils.stringify(competingMessages));
     return competingMessages;
   }
 
-  private List<ArrayList<AbstractLiteral>> makePairwiseClauses(PrecedenceSolver aSolver, ArrayList<AbstractLiteral> messageLiterals) {
+  private List<ArrayList<AbstractLiteral>> makePairwiseClauses(SolverFacade aSolver, ArrayList<AbstractLiteral> messageLiterals) {
     final List<ArrayList<AbstractLiteral>> pairwiseClauses = new ArrayList<ArrayList<AbstractLiteral>>();
     for (final AbstractLiteral messageParam : messageLiterals) {
       final ArrayList<AbstractLiteral> conjunct = new ArrayList<AbstractLiteral>();
@@ -346,7 +319,7 @@ public class Checker extends WorkflowComponentWithSlot {
     return pairwiseClauses;
   }
 
-  private void generateCompletionClauses(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private void generateCompletionClauses(SolverFacade aSolver, BSPL theProtocol) {
     for (final Parameter p : paramsToRolesToRefs.keySet()) {
       if (this.isPublicOut(theProtocol, p)) {
         final MapSet<Role, Message> roleMap = paramsToRolesToRefs.get(p);
@@ -355,20 +328,20 @@ public class Checker extends WorkflowComponentWithSlot {
 
           for (final Message m : roleMap.getValues(r)) {
             if (this.isMessageOut(m, p) && (r == m.getReceiver())) {
-              final AbstractLiteral roleParameterPos = this.makeLiteral(aSolver, r, p, false);
+              final AbstractLiteral roleParameterPos = aSolver.makeLiteral(r, p, false);
               outParamLiterals.add(roleParameterPos);
             }
           }
         }
         if (!outParamLiterals.isEmpty()) {
-          this.addClause(outParamLiterals);
-          Checker.logger.warn("Completion clause: " + ProtocolUtils.stringify(outParamLiterals));
+          aSolver.assertClause(outParamLiterals);
+          Checker.logger.debug("Completion clause: " + ProtocolUtils.stringify(outParamLiterals));
         }
       }
     }
   }
 
-  private void generateMaximalityClauses(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private void generateMaximalityClauses(SolverFacade aSolver, BSPL theProtocol) {
     for (final EObject aRef : theProtocol.getReferences()) {
       /*
        * TODO Should generate different literals for each copy of an overloaded
@@ -381,7 +354,7 @@ public class Checker extends WorkflowComponentWithSlot {
     }
   }
   
-  private void generateNonCompletionClause(PrecedenceSolver aSolver, BSPL theProtocol) {
+  private void generateNonCompletionClause(SolverFacade aSolver, BSPL theProtocol) {
     final List<AbstractLiteral> protocolOutParamLiterals = new ArrayList<AbstractLiteral>();
     for (final Parameter p : paramsToRolesToRefs.keySet()) {
       if (this.isPublicOut(theProtocol, p)) {
@@ -389,32 +362,32 @@ public class Checker extends WorkflowComponentWithSlot {
          
           List<AbstractLiteral> paramInstancesIf = new ArrayList<AbstractLiteral>();
           List<AbstractLiteral> paramInstancesOnlyIf = new ArrayList<AbstractLiteral>();
-          final AbstractLiteral paramLiteralPos = this.makeLiteral(aSolver, theProtocol.getName(), p, false);
-          final AbstractLiteral paramLiteralNeg = this.makeLiteral(aSolver, theProtocol.getName(), p, true);
+          final AbstractLiteral paramLiteralPos = aSolver.makeLiteral(theProtocol.getName(), p, false);
+          final AbstractLiteral paramLiteralNeg = aSolver.makeLiteral(theProtocol.getName(), p, true);
           paramInstancesIf.add(paramLiteralNeg);
           paramInstancesOnlyIf.add(paramLiteralPos);
           
           for (Role r : rolesToRefs.keySet()) {
-            final AbstractLiteral messageLiteralPos = this.makeLiteral(aSolver, r, p, false);
-            final AbstractLiteral messageLiteralNeg = this.makeLiteral(aSolver, r, p, true);
+            final AbstractLiteral messageLiteralPos = aSolver.makeLiteral(r, p, false);
+            final AbstractLiteral messageLiteralNeg = aSolver.makeLiteral(r, p, true);
             paramInstancesIf.add(messageLiteralPos);
             paramInstancesOnlyIf.add(messageLiteralNeg);
           }     
 
-          this.addClause(paramInstancesIf);
-          this.addClause(paramInstancesOnlyIf);
+          aSolver.assertClause(paramInstancesIf);
+          aSolver.assertClause(paramInstancesOnlyIf);
           protocolOutParamLiterals.add(paramLiteralNeg);
       }
     }
     
-    this.addClause(protocolOutParamLiterals);
-    Checker.logger.warn("Noncompletion clause: " + ProtocolUtils.stringify(protocolOutParamLiterals));
+    aSolver.assertClause(protocolOutParamLiterals);
+    Checker.logger.debug("Noncompletion clause: " + ProtocolUtils.stringify(protocolOutParamLiterals));
   }
 
-  private void generateMessageMaximalityClauses(PrecedenceSolver aSolver, Message m) {
-    final AbstractLiteral senderMessagePos = this.makeLiteral(aSolver, m.getSender(), m, false);
-    final AbstractLiteral senderMessageNeg = this.makeLiteral(aSolver, m.getSender(), m, true);
-    final AbstractLiteral receiverMessagePos = this.makeLiteral(aSolver, m.getReceiver(), m, false);
+  private void generateMessageMaximalityClauses(SolverFacade aSolver, Message m) {
+    final AbstractLiteral senderMessagePos = aSolver.makeLiteral(m.getSender(), m, false);
+    final AbstractLiteral senderMessageNeg = aSolver.makeLiteral(m.getSender(), m, true);
+    final AbstractLiteral receiverMessagePos = aSolver.makeLiteral(m.getReceiver(), m, false);
 
     this.messageDeliveryClause(aSolver, senderMessagePos, receiverMessagePos, senderMessageNeg);
 
@@ -423,42 +396,42 @@ public class Checker extends WorkflowComponentWithSlot {
 
     final EList<Parameter> inParams = ProtocolUtils.selectParametersInRef(m, kAdornment.IN);
     for (final Parameter p : inParams) {
-      final AbstractLiteral senderParameterNeg = this.makeLiteral(aSolver, m.getSender(), p, true);
+      final AbstractLiteral senderParameterNeg = aSolver.makeLiteral(m.getSender(), p, true);
       maximalityClause.add(senderParameterNeg);
     }
 
     final EList<Parameter> outParams = ProtocolUtils.selectParametersInRef(m, kAdornment.OUT);
     for (final Parameter p : outParams) {
-      final AbstractLiteral senderParameterPos = this.makeLiteral(aSolver, m.getSender(), p, false);
+      final AbstractLiteral senderParameterPos = aSolver.makeLiteral(m.getSender(), p, false);
       maximalityClause.add(senderParameterPos);
     }
 
     final EList<Parameter> nilParams = ProtocolUtils.selectParametersInRef(m, kAdornment.NIL);
     for (final Parameter p : nilParams) {
       /* TODO Need to think through the treatment of NIL parameters for maximality. */
-      final AbstractLiteral senderParameterPos = this.makeLiteral(aSolver, m.getSender(), p, false);
+      final AbstractLiteral senderParameterPos = aSolver.makeLiteral(m.getSender(), p, false);
       maximalityClause.add(senderParameterPos);
     }
     
-    this.addClause(maximalityClause);
-    Checker.logger.warn("Maximality clause: (" +ProtocolUtils.stringify(maximalityClause)+ ")");
+    aSolver.assertClause(maximalityClause);
+    Checker.logger.debug("Maximality clause: (" +ProtocolUtils.stringify(maximalityClause)+ ")");
   }
   
-  private void messageDeliveryClause(PrecedenceSolver aSolver, AbstractLiteral senderMessagePos, AbstractLiteral receiverMessagePos, AbstractLiteral senderMessageNeg) {
+  private void messageDeliveryClause(SolverFacade aSolver, AbstractLiteral senderMessagePos, AbstractLiteral receiverMessagePos, AbstractLiteral senderMessageNeg) {
     final AbstractLiteral successfulTransmission = aSolver.makeSequenceLiteral(senderMessagePos, receiverMessagePos);
-    this.addLiteralsAsClause(senderMessageNeg, successfulTransmission);
-    Checker.logger.warn("Message delivery succeeds: (" +senderMessageNeg.getName()+ " + " +successfulTransmission.getName()+ ")");
+    aSolver.assertLiteralsAsClause(senderMessageNeg, successfulTransmission);
+    Checker.logger.debug("Message delivery succeeds: (" +senderMessageNeg.getName()+ " + " +successfulTransmission.getName()+ ")");
   }
 
   /*
    * This method not only generates the clauses for each message, but also
    * builds the maps used by subsequent methods.
    */
-  private void generateMessageClauses(PrecedenceSolver aSolver, Message m) {
-    final AbstractLiteral senderMessagePos = this.makeLiteral(aSolver, m.getSender(), m, false);
-    final AbstractLiteral senderMessageNeg = this.makeLiteral(aSolver, m.getSender(), m, true);
-    final AbstractLiteral receiverMessagePos = this.makeLiteral(aSolver, m.getReceiver(), m, false);
-    final AbstractLiteral receiverMessageNeg = this.makeLiteral(aSolver, m.getReceiver(), m, true);
+  private void generateMessageClauses(SolverFacade aSolver, Message m) {
+    final AbstractLiteral senderMessagePos = aSolver.makeLiteral(m.getSender(), m, false);
+    final AbstractLiteral senderMessageNeg = aSolver.makeLiteral(m.getSender(), m, true);
+    final AbstractLiteral receiverMessagePos = aSolver.makeLiteral(m.getReceiver(), m, false);
+    final AbstractLiteral receiverMessageNeg = aSolver.makeLiteral(m.getReceiver(), m, true);
 
     this.causalitySenderToReceiver(aSolver, senderMessagePos, receiverMessagePos, receiverMessageNeg);
 
@@ -511,7 +484,7 @@ public class Checker extends WorkflowComponentWithSlot {
    */
   private void storeParameterMap(Role r, Message m, Parameter p) {
     paramsToRolesToRefs.storeValueInNestedMap(p, r, m);
-    Checker.logger.debug("storeParameterMap: Role r, Message m, Parameter p= "
+    Checker.logger.trace("storeParameterMap: Role r, Message m, Parameter p= "
         + r + " " + m + " " + p + " ");
   }
 
@@ -520,12 +493,12 @@ public class Checker extends WorkflowComponentWithSlot {
    * parameter. It must come to know the parameter: either prior to receiving
    * the message or together with receiving the message. (-m + p.m + m*p)
    */
-  private void receiverInOutParam(PrecedenceSolver aSolver, Message m, AbstractLiteral receiverMessagePos, AbstractLiteral receiverMessageNeg, Parameter p) {
-    final AbstractLiteral receiverParameterPos = this.makeLiteral(aSolver, m.getReceiver(), p, false);
+  private void receiverInOutParam(SolverFacade aSolver, Message m, AbstractLiteral receiverMessagePos, AbstractLiteral receiverMessageNeg, Parameter p) {
+    final AbstractLiteral receiverParameterPos = aSolver.makeLiteral(m.getReceiver(), p, false);
     final AbstractLiteral paramBeforeMessage = aSolver.makeSequenceLiteral(receiverParameterPos, receiverMessagePos);
     final AbstractLiteral paramUponMessage = aSolver.makeTogetherLiteral(receiverMessagePos, receiverParameterPos);
-    this.addLiteralsAsClause(receiverMessageNeg, paramBeforeMessage, paramUponMessage);
-    Checker.logger.warn("IN: (" + receiverMessageNeg.getName() + " + "
+    aSolver.assertLiteralsAsClause(receiverMessageNeg, paramBeforeMessage, paramUponMessage);
+    Checker.logger.debug("IN: (" + receiverMessageNeg.getName() + " + "
         + paramBeforeMessage.getName() + " + " + paramUponMessage.getName()
         + ")");
   }
@@ -534,10 +507,10 @@ public class Checker extends WorkflowComponentWithSlot {
    * Capturing causality. If a message is received, it must have been sent
    * before. (-receiver:m + sender:m.receiver:m)
    */
-  private void causalitySenderToReceiver(PrecedenceSolver aSolver, AbstractLiteral senderMessagePos, AbstractLiteral receiverMessagePos, AbstractLiteral receiverMessageNeg) {
+  private void causalitySenderToReceiver(SolverFacade aSolver, AbstractLiteral senderMessagePos, AbstractLiteral receiverMessagePos, AbstractLiteral receiverMessageNeg) {
     final AbstractLiteral sendBeforeReceive = aSolver.makeSequenceLiteral(senderMessagePos, receiverMessagePos);
-    this.addLiteralsAsClause(receiverMessageNeg, sendBeforeReceive);
-    Checker.logger.warn("Causality (message occurrence): ("
+    aSolver.assertLiteralsAsClause(receiverMessageNeg, sendBeforeReceive);
+    Checker.logger.debug("Causality (message occurrence): ("
         + receiverMessageNeg.getName() + " + " + sendBeforeReceive.getName()
         + ")");
   }
@@ -546,54 +519,50 @@ public class Checker extends WorkflowComponentWithSlot {
    * NIL p must _not_ be known to the sender _any time prior_ to m. (-m + -p +
    * m.p)
    */
-  private void senderNilParam(PrecedenceSolver aSolver, Message m, AbstractLiteral senderMessagePos, AbstractLiteral senderMessageNeg, Parameter p) {
-    final AbstractLiteral senderParameterPos = this.makeLiteral(aSolver, m.getSender(), p, false);
-    final AbstractLiteral senderParameterNeg = this.makeLiteral(aSolver, m.getSender(), p, true);
+  private void senderNilParam(SolverFacade aSolver, Message m, AbstractLiteral senderMessagePos, AbstractLiteral senderMessageNeg, Parameter p) {
+    final AbstractLiteral senderParameterPos = aSolver.makeLiteral(m.getSender(), p, false);
+    final AbstractLiteral senderParameterNeg = aSolver.makeLiteral(m.getSender(), p, true);
     final AbstractLiteral messageBeforeParam = aSolver.makeSequenceLiteral(senderMessagePos, senderParameterPos);
-    this.addLiteralsAsClause(senderMessageNeg, senderParameterNeg, messageBeforeParam);
-    Checker.logger.warn("NIL: (" + senderMessageNeg.getName() + " + " + messageBeforeParam.getName() + ")");
+    aSolver.assertLiteralsAsClause(senderMessageNeg, senderParameterNeg, messageBeforeParam);
+    Checker.logger.debug("NIL: (" + senderMessageNeg.getName() + " + " + messageBeforeParam.getName() + ")");
   }
 
   /*
    * OUT p is known _immediately upon_ m to the sender. (-m + m*p)
    */
-  private void senderOutParam(PrecedenceSolver aSolver, Message m,
+  private void senderOutParam(SolverFacade aSolver, Message m,
       AbstractLiteral senderMessagePos, AbstractLiteral senderMessageNeg, Parameter p) {
-    final AbstractLiteral senderParameterPos = this.makeLiteral(aSolver, m.getSender(), p, false);
+    final AbstractLiteral senderParameterPos = aSolver.makeLiteral(m.getSender(), p, false);
     final AbstractLiteral paramUponMessage = aSolver.makeTogetherLiteral(senderMessagePos, senderParameterPos);
-    this.addLiteralsAsClause(senderMessageNeg, paramUponMessage);
-    Checker.logger.warn("OUT: (" + senderMessageNeg.getName() + " + " + paramUponMessage.getName() + ")");
+    aSolver.assertLiteralsAsClause(senderMessageNeg, paramUponMessage);
+    Checker.logger.debug("OUT: (" + senderMessageNeg.getName() + " + " + paramUponMessage.getName() + ")");
   }
 
   /*
    * IN p means that p become known to the sender _any time prior_ to m. (-m +
    * p.m)
    */
-  private void senderInParam(PrecedenceSolver aSolver, Message m, AbstractLiteral senderMessagePos, AbstractLiteral senderMessageNeg, Parameter p) {
-    final AbstractLiteral senderParameterPos = this.makeLiteral(aSolver, m.getSender(), p, false);
+  private void senderInParam(SolverFacade aSolver, Message m, AbstractLiteral senderMessagePos, AbstractLiteral senderMessageNeg, Parameter p) {
+    final AbstractLiteral senderParameterPos = aSolver.makeLiteral(m.getSender(), p, false);
     final AbstractLiteral paramBeforeMessage = aSolver.makeSequenceLiteral(senderParameterPos, senderMessagePos);
-    this.addLiteralsAsClause(senderMessageNeg, paramBeforeMessage);
-    Checker.logger.warn("IN: (" + senderMessageNeg.getName() + " + "  + paramBeforeMessage.getName() + ")");
+    aSolver.assertLiteralsAsClause(senderMessageNeg, paramBeforeMessage);
+    Checker.logger.debug("IN: (" + senderMessageNeg.getName() + " + "  + paramBeforeMessage.getName() + ")");
   }
 
-  private AbstractLiteral makeLiteral(PrecedenceSolver aSolver, Role r, Message m, boolean negated) {
-    return aSolver.makeLiteral(this.msgName(m, r.getName()), negated);
+  public String getGraphVizFile() {
+    return graphVizFile;
   }
 
-  private AbstractLiteral makeLiteral(PrecedenceSolver aSolver, Role r, Parameter p, boolean negated) {
-    return aSolver.makeLiteral(this.paramName(p, r.getName()), negated);
+  public void setGraphVizFile(String graphVizFile) {
+    this.graphVizFile = graphVizFile;
   }
 
-  private AbstractLiteral makeLiteral(PrecedenceSolver aSolver, String prefix, Parameter p, boolean negated) {
-    return aSolver.makeLiteral(this.paramName(p, prefix), negated);
+  public String getUriPrefix() {
+    return uriPrefix;
   }
 
-  private String msgName(Message m, String roleName) {
-    return roleName + ":" + "m_" + m.getName();
-  }
-
-  private String paramName(Parameter p, String roleName) {
-    return roleName + ":" + "p_" + p.getName();
+  public void setUriPrefix(String uriPrefix) {
+    this.uriPrefix = uriPrefix;
   }
 
 }

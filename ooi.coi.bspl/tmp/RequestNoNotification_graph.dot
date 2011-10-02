@@ -1,0 +1,7 @@
+digraph RequestNoNotification_graph {
+I_m_request -> P_m_request;
+P_m_request -> P_m_result;
+P_m_result -> P_m_refuse;
+P_m_refuse -> I_m_refuse;
+I_m_refuse -> P_m_done;
+}

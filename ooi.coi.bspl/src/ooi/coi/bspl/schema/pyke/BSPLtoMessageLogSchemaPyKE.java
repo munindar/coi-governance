@@ -24,10 +24,6 @@ import com.google.common.collect.Iterators;
 public class BSPLtoMessageLogSchemaPyKE extends WorkflowComponentWithSlot {
 
   private static Logger logger = Logger.getLogger(BSPLtoMessageLogSchemaPyKE.class);
-  static {
-    logger.setLevel(Level.INFO); // ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF
-  }
-
   private MapSet<String, MessageLogTable> roleSchemas = new MapSet<String, MessageLogTable>();
 
   @Override

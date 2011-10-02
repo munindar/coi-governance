@@ -9,7 +9,8 @@ import ooi.coi.bspl.schema.pyke.*
 import ooi.coi.bspl.semantic.*
 
 var targetDir = "logSchemas/"
-var modelPath = "protocols"
+var tmpDir = "tmp/"
+var modelPath = "protocols/test"
 
 Workflow {
 
@@ -26,12 +27,11 @@ Workflow {
 // WAS			slot = "model"
 	  slot = ""
 //			type = "EObject"
-
 	}
   }
 
   component = BSPLReader {
-//  	  uri = "protocols/AbruptCancel.bspl"
+//  	  uri = "protocols/incorrect/AbruptCancel.bspl"
 //        uri = "protocols/Admit.bspl"
 //        uri = "protocols/ANFQueue.bspl"
 //        uri = "protocols/BPD.bspl"
@@ -39,26 +39,29 @@ Workflow {
 //        uri = "protocols/Example.bspl"
 //        uri = "protocols/GBPD.bspl"
 //        uri = "protocols/InsuranceCLaims.bspl"
-//        uri = "protocols/LocalConflict.bspl"
+//        uri = "protocols/correct/LocalConflict.bspl"
 //        uri = "protocols/MixedInitiativeOffer.bspl"
 //        uri = "protocols/MixedInitiativeOffer.bspl"
 //        uri = "protocols/MPD.bspl"
 //        uri = "protocols/OneMessage.bspl"
-//        uri = "protocols/Purchase.bspl"
-        uri = "protocols/PurchaseNoReject.bspl"
+//        uri = "protocols/correct/Purchase.bspl"
+        uri = "protocols/incorrect/PurchaseNoAcceptRejectConflict.bspl"
+//        uri = "protocols/PurchaseNoReject.bspl"
 //        uri = "protocols/PurchaseNoShip.bspl"
 //        uri = "protocols/ReciprocatingParameters.bspl"
 //        uri = "protocols/ReciprocatingRoles.bspl"
-//        uri = "protocols/AbruptCancel.bspl"
 //        uri = "protocols/RequestNoNotification.bspl"
 //        uri = "protocols/RequestNotification.bspl"
 //        uri = "protocols/RequestOptionalNotification.bspl"
   }
 
-  component = Checker {}
+  component = Checker {
+  	uriPrefix = tmpDir
+    graphVizFile = "graph"
+  }
 
-// TODO: Need to fix that Checker writes a boolean but the following expects a resource
-  component = BSPLtoMessageLogSchemaPyKE {}
+// TODO Need to fix that Checker writes a boolean but the following expects a resource
+//  component = BSPLtoMessageLogSchemaPyKE {}
 
 //  component = BSPLtoMessageLogSchemaSQL {}
 //  component = InsertIntegrityQueriesSQL {
@@ -67,14 +70,14 @@ Workflow {
 //          uriSuffix = "_Queries.java"
 //  }
   
-  component = PyKEWriter {
-//  component = SQLWriter {
-//		register = BSPLStandaloneSetup {}
-		slot = 'model'
-          uriPrefix = targetDir
-          uriSuffix = ".pfb"
- //			path = targetDir
-  }
+//  component = PyKEWriter {
+////  component = SQLWriter {
+////		register = BSPLStandaloneSetup {}
+//		  slot = 'model'
+//          uriPrefix = targetDir
+//          uriSuffix = ".pfb"
+// //			path = targetDir
+//  }
 
 }
 

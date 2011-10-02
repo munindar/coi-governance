@@ -1,0 +1,12 @@
+digraph PurchaseNoAcceptRejectConflict_graph {
+Buyer_m_rfq -> Seller_m_rfq;
+Seller_m_rfq -> Seller_m_quote;
+Seller_m_quote -> Buyer_m_quote;
+Buyer_m_quote -> Buyer_m_accept;
+Buyer_m_accept -> Seller_m_accept;
+Seller_m_accept -> Seller_m_ship;
+Seller_m_ship -> Shipper_m_ship;
+Shipper_m_ship -> Shipper_m_deliver;
+Shipper_m_deliver -> Buyer_m_reject;
+Buyer_m_reject -> Seller_m_reject;
+}

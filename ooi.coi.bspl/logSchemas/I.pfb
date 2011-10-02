@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 LogTable('resultb','ID','req','notify','res');
 KeyTable('resultb','ID','req');
 LogTable('refuse','ID','req','handle','res');
@@ -18,3 +19,25 @@ LogTable('result','ID','req','handle','res');
 KeyTable('result','ID','req');
 LogTable('fail','ID','req','handle','res');
 KeyTable('fail','ID','req');
+=======
+LogTable('request','ID','req','notify');
+KeyTable('request','ID','req');
+LogTable('refuse','ID','req','handle','res');
+KeyTable('refuse','ID','req');
+LogTable('doneb','ID','req','notify','res');
+KeyTable('doneb','ID','req');
+LogTable('resultb','ID','req','notify','res');
+KeyTable('resultb','ID','req');
+LogTable('agree','ID','req','handle','notify');
+KeyTable('agree','ID','req');
+LogTable('failb','ID','req','notify','res');
+KeyTable('failb','ID','req');
+LogTable('fail','ID','req','handle','res');
+KeyTable('fail','ID','req');
+LogTable('result','ID','req','handle','res');
+KeyTable('result','ID','req');
+LogTable('requestb','ID','req','notify');
+KeyTable('requestb','ID','req');
+LogTable('done','ID','req','handle','res');
+KeyTable('done','ID','req');
+>>>>>>> branch 'master' of https://munindar@github.com/munindar/coi-governance.git
