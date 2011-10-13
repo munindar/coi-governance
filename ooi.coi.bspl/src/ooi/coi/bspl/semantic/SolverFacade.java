@@ -5,13 +5,14 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.ektimisi.precedence.solver.AbstractLiteral;
+import com.ektimisi.precedence.solver.PrecedenceSolver;
+
 import ooi.coi.bspl.bSPL.BSPL;
 import ooi.coi.bspl.bSPL.Message;
 import ooi.coi.bspl.bSPL.Parameter;
 import ooi.coi.bspl.bSPL.Role;
 
-import com.ektimisi.precedence.solver.AbstractLiteral;
-import com.ektimisi.precedence.solver.PrecedenceSolver;
 
 public class SolverFacade {
 
@@ -43,8 +44,12 @@ public class SolverFacade {
     return result;
   }
 
+  void numberOfClauses(String msg) {
+    logger.info("Currently " + theClauses.size() + " Precedence clauses: "+msg);
+  }
+
   void loadSolver() {
-    logger.info("Loading " + theClauses.size() + " Precedence clauses");
+    this.numberOfClauses("loadSolver");
     for (final AbstractLiteral[] aClause : theClauses)
       thePrecedenceSolver.addOneClause(aClause);
   }

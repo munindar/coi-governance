@@ -37,10 +37,10 @@ public class Checker extends WorkflowComponentWithSlot {
   private static Logger logger = Logger.getLogger(Checker.class);
   static {
     logger.setLevel(Level.DEBUG); // ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF
-    Logger.getLogger(com.ektimisi.precedence.util.Graph.class).setLevel(Level.INFO);
-    Logger.getLogger(com.ektimisi.precedence.solver.GraphBuilder.class).setLevel(Level.INFO);
+    Logger.getLogger(com.ektimisi.precedence.util.Graph.class).setLevel(Level.WARN);
+    Logger.getLogger(com.ektimisi.precedence.solver.GraphBuilder.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.util.MapSet.class).setLevel(Level.WARN);
-    Logger.getLogger(com.ektimisi.precedence.solver.PrecedenceSolver.class).setLevel(Level.INFO);
+    Logger.getLogger(com.ektimisi.precedence.solver.PrecedenceSolver.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Pairings.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Literal.class).setLevel(Level.WARN);
     Logger.getLogger(com.ektimisi.precedence.solver.Sequence.class).setLevel(Level.WARN);
@@ -71,11 +71,12 @@ public class Checker extends WorkflowComponentWithSlot {
     theSolver = new SolverFacade();
     
     this.generateCausalStructure(theSolver, theProtocol);
+    theSolver.numberOfClauses("generateCausalStructure");
 
     boolean result = true;
-//    result &= this.checkEnactability(theSolver, theProtocol);
+    result &= this.checkEnactability(theSolver, theProtocol);
     result &= this.checkIntegrity(theSolver, theProtocol);
-//    result &= this.checkAtomicity(theSolver, theProtocol);
+    result &= this.checkAtomicity(theSolver, theProtocol);
 
     if (result)
       Checker.logger.info("Protocol " + theProtocol.getName() + " passes all checks");
@@ -85,6 +86,8 @@ public class Checker extends WorkflowComponentWithSlot {
 
   private boolean checkEnactability(SolverFacade aSolver, BSPL theProtocol) {
     this.generateCompletionClauses(aSolver, theProtocol);
+    aSolver.numberOfClauses("completion in enactability");
+
     aSolver.loadSolver();
     boolean result = aSolver.solve(theProtocol, uriPrefix, graphVizFile);
     if (result) {
@@ -98,6 +101,8 @@ public class Checker extends WorkflowComponentWithSlot {
   /* TODO This repeats the completion clauses used in checkEnactability */
   private boolean checkIntegrity(SolverFacade aSolver, BSPL theProtocol) {
     this.generateCompletionClauses(aSolver, theProtocol);
+    aSolver.numberOfClauses("completion in integrity");
+
     final boolean clausesAdded = this.generateIntegrityClauses(aSolver, theProtocol);
     aSolver.loadSolver();
 
@@ -117,8 +122,11 @@ public class Checker extends WorkflowComponentWithSlot {
 
   private boolean checkAtomicity(SolverFacade aSolver, BSPL theProtocol) {
     this.generateMaximalityClauses(aSolver, theProtocol);
+    aSolver.numberOfClauses("maximality in atomicity");
     this.generateNonCompletionClause(aSolver, theProtocol);
+    aSolver.numberOfClauses("noncompletion in atomicity");
 
+    aSolver.loadSolver();
     boolean result = aSolver.solve(theProtocol, uriPrefix, graphVizFile);
 
     if (result) {
@@ -229,17 +237,18 @@ public class Checker extends WorkflowComponentWithSlot {
   }
 
   private void addNonoccurrenceClauses(SolverFacade aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos, AbstractLiteral firstNeg, AbstractLiteral secondNeg) {
-    if (firstPos != secondPos) {
-      final AbstractLiteral togetherNonFirstNonSecond = aSolver.makeTogetherLiteral(firstNeg, secondNeg);
-      final AbstractLiteral[] togetherNon = { firstPos, secondPos, togetherNonFirstNonSecond };
-      aSolver.assertClause(togetherNon);
-      Checker.logger.debug("All nonoccurrences are together: (" + firstPos.getName() + " + " + secondPos.getName() + " + " + togetherNonFirstNonSecond.getName() + ")");
-      
-      final AbstractLiteral sequenceNonFirstSecond = aSolver.makeSequenceLiteral(firstNeg, secondPos);
-      final AbstractLiteral[] sequenceNon = { firstPos, secondNeg, sequenceNonFirstSecond };
-      aSolver.assertClause(sequenceNon);
-      Checker.logger.debug("Nonoccurrences precede occurrences: (" + firstPos.getName() + " + " + secondNeg.getName() + " + " + sequenceNonFirstSecond.getName() + ")"); 
-    }
+/* TODO Commenting this method out just to count clauses generated*/
+//    if (firstPos != secondPos) {
+//      final AbstractLiteral togetherNonFirstNonSecond = aSolver.makeTogetherLiteral(firstNeg, secondNeg);
+//      final AbstractLiteral[] togetherNon = { firstPos, secondPos, togetherNonFirstNonSecond };
+//      aSolver.assertClause(togetherNon);
+//      Checker.logger.debug("All nonoccurrences are together: (" + firstPos.getName() + " + " + secondPos.getName() + " + " + togetherNonFirstNonSecond.getName() + ")");
+//      
+//      final AbstractLiteral sequenceNonFirstSecond = aSolver.makeSequenceLiteral(firstNeg, secondPos);
+//      final AbstractLiteral[] sequenceNon = { firstPos, secondNeg, sequenceNonFirstSecond };
+//      aSolver.assertClause(sequenceNon);
+//      Checker.logger.debug("Nonoccurrences precede occurrences: (" + firstPos.getName() + " + " + secondNeg.getName() + " + " + sequenceNonFirstSecond.getName() + ")"); 
+//    }
   }
 
   private void addNotTogetherClause(SolverFacade aSolver, AbstractLiteral firstPos, AbstractLiteral secondPos) {
@@ -348,6 +357,8 @@ public class Checker extends WorkflowComponentWithSlot {
        * message schema. For example, if the protocol has two rfq messages with
        * different schemas, we need two rfq literals, e.g., rfq0 and rfq1, for
        * the sender and likewise two for the receiver.
+       * Presently, I am addressing this by renaming such messages in the
+       * protocol specifications by hand.
        */
       final Message aMessage = (Message) aRef;
       this.generateMessageMaximalityClauses(aSolver, aMessage);
